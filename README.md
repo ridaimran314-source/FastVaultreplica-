@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # FASTVault Replica
 
 A full-stack replica of [fastvault.vercel.app](https://fastvault.vercel.app/) — the FAST-NUCES academic resource platform. Built with Next.js 15, Firebase, and Tailwind CSS following the official build documentation.
@@ -163,3 +164,6 @@ scripts/seed-data.ts        # Demo data seeder
 ## License
 
 Independent student project — not affiliated with FAST-NUCES.
+=======
+# FastVaultreplica-
+>>>>>>> 3431ed8ce32a7372b5010b95953a0eb31dcc305d
