@@ -11,12 +11,16 @@ export interface UserProfile {
 }
 
 export type ResourceType =
+  | "mid1"
+  | "mid2"
+  | "final"
   | "past_paper"
   | "notes"
   | "assignment"
   | "lab_manual"
   | "slides"
   | "study_guide"
+  | "quiz"
   | "link";
 
 export type ResourceStatus = "pending" | "published" | "rejected";

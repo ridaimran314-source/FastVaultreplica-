@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { requireDb } from "@/lib/firebase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
 import { CAMPUSES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -29,11 +28,17 @@ export default function AdminEventsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await addDoc(collection(requireDb(), "events"), {
-        ...form,
-        date: new Date(form.date),
-        created_at: serverTimestamp(),
+      const { error } = await getSupabase().from("events").insert({
+        title: form.title,
+        description: form.description,
+        date: new Date(form.date).toISOString(),
+        venue: form.venue,
+        campus: form.campus,
+        organizer: form.organizer,
+        registration_url: form.registration_url || null,
+        poster: form.poster || null,
       });
+      if (error) throw error;
       setSuccess(true);
       setForm({
         title: "",

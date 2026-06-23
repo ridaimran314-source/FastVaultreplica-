@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { requireDb } from "@/lib/firebase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
 import { CAMPUSES, SOCIETY_CATEGORIES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -35,15 +34,15 @@ export default function AdminSocietiesPage() {
     if (form.linkedin) social_links.linkedin = form.linkedin;
 
     try {
-      await addDoc(collection(requireDb(), "societies"), {
+      const { error } = await getSupabase().from("societies").insert({
         name: form.name,
         description: form.description,
         campus: form.campus,
         category: form.category,
         members: parseInt(form.members) || 0,
         social_links,
-        created_at: serverTimestamp(),
       });
+      if (error) throw error;
       setSuccess(true);
     } finally {
       setLoading(false);

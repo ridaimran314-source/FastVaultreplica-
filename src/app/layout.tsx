@@ -4,7 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { FirebaseSetupBanner } from "@/components/shared/FirebaseSetupBanner";
+import { SupabaseSetupBanner } from "@/components/shared/SupabaseSetupBanner";
 import { SITE_CONFIG } from "@/lib/constants";
 
 const geistSans = Geist({
@@ -36,7 +36,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans antialiased`}
       >
         <AuthProvider>
-          <FirebaseSetupBanner />
+          <SupabaseSetupBanner />
           <Navbar />
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>
           <Footer />

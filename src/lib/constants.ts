@@ -1,17 +1,17 @@
 export const SITE_CONFIG = {
-  name: process.env.NEXT_PUBLIC_SITE_NAME || "FASTVault",
+  name: process.env.NEXT_PUBLIC_SITE_NAME || "HarriDesk",
   tagline:
     "A comprehensive platform for FAST-NUCES students to access academic resources, campus events, and connect with student societies.",
   contactEmail:
-    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@fastvault.example.com",
+    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@harriedesk.example.com",
   facebookGroup:
     process.env.NEXT_PUBLIC_FACEBOOK_GROUP ||
-    "https://facebook.com/groups/fastvault",
+    "https://facebook.com/groups/harriedesk",
   builderName: process.env.NEXT_PUBLIC_BUILDER_NAME || "Developer",
   builderPortfolio:
     process.env.NEXT_PUBLIC_BUILDER_PORTFOLIO || "https://github.com",
   disclaimer:
-    "FASTVault is an independent, student-run project and is not officially affiliated with FAST-NUCES.",
+    "HarriDesk is an independent, student-run project and is not officially affiliated with FAST-NUCES.",
 };
 
 export const CAMPUSES = [
@@ -27,15 +27,54 @@ export type CampusId = (typeof CAMPUSES)[number]["id"];
 
 export const DEPARTMENTS = ["CS", "SE", "EE", "BBA", "AI", "DS"] as const;
 
+export const COURSES = [
+  "Calculus",
+  "PF",
+  "OOP",
+  "Data Structures",
+  "MLOps",
+  "ANN",
+  "Multivariable Calculus",
+  "Islamiat",
+  "Pakistan Studies",
+  "Functional English",
+  "PAI",
+  "AI",
+  "COAL",
+  "Database",
+  "Operating Systems",
+  "Software Engineering",
+  "Computer Networks",
+  "Discrete Structures",
+  "Linear Algebra",
+  "Probability & Statistics",
+  "Digital Logic Design",
+  "Computer Organization",
+  "Theory of Automata",
+  "Compiler Construction",
+  "Web Engineering",
+  "Mobile App Development",
+  "Cloud Computing",
+  "Information Security",
+  "Human Computer Interaction",
+  "Professional Practices",
+] as const;
+
 export const RESOURCE_TYPES = [
+  { value: "mid1", label: "Mid 1" },
+  { value: "mid2", label: "Mid 2" },
+  { value: "final", label: "Final" },
   { value: "past_paper", label: "Past Papers" },
   { value: "notes", label: "Notes" },
   { value: "assignment", label: "Assignments" },
   { value: "lab_manual", label: "Lab Manuals" },
   { value: "slides", label: "Slides" },
   { value: "study_guide", label: "Study Guides" },
+  { value: "quiz", label: "Quiz" },
   { value: "link", label: "Links" },
 ] as const;
+
+export const MAX_UPLOAD_MB = 5;
 
 export const ADMISSION_SUBCATEGORIES = [
   { value: "past_paper", label: "Past Papers" },
@@ -123,7 +162,7 @@ export const FEATURE_CARDS = [
 export const TESTIMONIALS = [
   {
     quote:
-      "FASTVault has been a game-changer for my studies. The past papers and study materials helped me ace my exams. The community is incredibly supportive!",
+      "HarriDesk has been a game-changer for my studies. The past papers and study materials helped me ace my exams. The community is incredibly supportive!",
     name: "Sarah Ahmed",
     program: "Computer Science Student",
     campus: "Islamabad Campus",
@@ -137,28 +176,28 @@ export const TESTIMONIALS = [
   },
   {
     quote:
-      "The academic resources and society information helped me connect with like-minded students. FASTVault made my university experience so much better.",
+      "The academic resources and society information helped me connect with like-minded students. HarriDesk made my university experience so much better.",
     name: "Fatima Khan",
     program: "Data Science Student",
     campus: "Lahore Campus",
   },
   {
     quote:
-      "As a new student, FASTVault helped me navigate campus life. The event updates and resource sharing features are fantastic. Great platform!",
+      "As a new student, HarriDesk helped me navigate campus life. The event updates and resource sharing features are fantastic. Great platform!",
     name: "Muhammad Ali",
     program: "Computer Science Student",
     campus: "Faisalabad Campus",
   },
   {
     quote:
-      "The study materials and past papers saved me countless hours. The platform is well-organized and easy to use. Thank you FASTVault!",
+      "The study materials and past papers saved me countless hours. The platform is well-organized and easy to use. Thank you HarriDesk!",
     name: "Ayesha Malik",
     program: "AI Student",
     campus: "Islamabad Campus",
   },
   {
     quote:
-      "Even though our campus is new, FASTVault provides access to resources from all campuses. It's like having a complete university library online!",
+      "Even though our campus is new, HarriDesk provides access to resources from all campuses. It's like having a complete university library online!",
     name: "Hassan Raza",
     program: "Computer Science Student",
     campus: "Multan Campus",

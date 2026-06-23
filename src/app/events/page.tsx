@@ -1,19 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-  getDocs,
-} from "firebase/firestore";
-import { db, isFirebaseConfigured, requireDb } from "@/lib/firebase/client";
+import Link from "next/link";
+import { Search } from "lucide-react";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { mapEvent } from "@/lib/supabase/mappers";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useRequireAuth } from "@/lib/auth/useProtectedRoute";
 import { CAMPUSES } from "@/lib/constants";
@@ -21,7 +12,6 @@ import type { Event } from "@/lib/types";
 import { EventCard } from "@/components/events/EventCard";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 
 export default function EventsPage() {
   const { user } = useAuth();
@@ -40,36 +30,21 @@ export default function EventsPage() {
   }, []);
 
   useEffect(() => {
-    if (!isFirebaseConfigured() || !db) {
+    if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
     }
 
-    const q = query(collection(db, "events"), orderBy("date", "asc"));
+    async function load() {
+      const { data } = await getSupabase()
+        .from("events")
+        .select("*")
+        .order("date", { ascending: true });
 
-    return onSnapshot(q, (snapshot) => {
-      let items = snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          title: data.title,
-          description: data.description,
-          date: data.date?.toDate?.() ?? new Date(),
-          venue: data.venue,
-          campus: data.campus,
-          poster: data.poster,
-          organizer: data.organizer,
-          registration_url: data.registration_url,
-          created_at: data.created_at?.toDate?.() ?? new Date(),
-        } as Event;
-      });
+      let items = (data ?? []).map((row) => mapEvent(row));
 
-      if (campus !== "all") {
-        items = items.filter((e) => e.campus === campus);
-      }
-      if (!showPast) {
-        items = items.filter((e) => e.date >= new Date());
-      }
+      if (campus !== "all") items = items.filter((e) => e.campus === campus);
+      if (!showPast) items = items.filter((e) => e.date >= new Date());
       if (search.trim()) {
         const term = search.toLowerCase();
         items = items.filter(
@@ -82,49 +57,47 @@ export default function EventsPage() {
 
       setEvents(items);
       setLoading(false);
-    });
+    }
+
+    load();
   }, [campus, showPast, search]);
 
   useEffect(() => {
-    if (!user || !isFirebaseConfigured() || !db) return;
+    if (!user || !isSupabaseConfigured()) return;
 
-    const q = query(
-      collection(db, "bookmarks"),
-      where("user_id", "==", user.uid),
-      where("type", "==", "event")
-    );
-
-    getDocs(q).then((snapshot) => {
-      setBookmarks(new Set(snapshot.docs.map((d) => d.data().resource_id)));
-    });
+    getSupabase()
+      .from("bookmarks")
+      .select("resource_id")
+      .eq("user_id", user.id)
+      .eq("type", "event")
+      .then(({ data }) => {
+        setBookmarks(new Set((data ?? []).map((b) => b.resource_id)));
+      });
   }, [user]);
 
   const handleBookmark = async (eventId: string) => {
     if (!requireAuth() || !user) return;
-    const firestore = requireDb();
+    const supabase = getSupabase();
 
     if (bookmarks.has(eventId)) {
-      const q = query(
-        collection(firestore, "bookmarks"),
-        where("user_id", "==", user.uid),
-        where("resource_id", "==", eventId),
-        where("type", "==", "event")
-      );
-      const snapshot = await getDocs(q);
-      snapshot.docs.forEach((d) => deleteDoc(doc(firestore, "bookmarks", d.id)));
       setBookmarks((prev) => {
         const next = new Set(prev);
         next.delete(eventId);
         return next;
       });
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("resource_id", eventId)
+        .eq("type", "event");
     } else {
-      await addDoc(collection(firestore, "bookmarks"), {
-        user_id: user.uid,
+      setBookmarks((prev) => new Set(prev).add(eventId));
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
         resource_id: eventId,
         type: "event",
-        created_at: serverTimestamp(),
       });
-      setBookmarks((prev) => new Set(prev).add(eventId));
     }
   };
 

@@ -30,7 +30,7 @@ const TIMELINE = [
   {
     title: "Built a Central Platform",
     description:
-      "Launched FASTVault — one login, all campuses, resources, societies, and events together.",
+      "Launched HarriDesk — one login, all campuses, resources, societies, and events together.",
   },
 ];
 
@@ -88,7 +88,7 @@ export default function AboutPage() {
       <section className="mb-16 text-center">
         <h1 className="mb-4 text-4xl font-bold">Our Story</h1>
         <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-          FASTVault started as a shared Google Drive folder at the Chiniot-Faisalabad
+          HarriDesk started as a shared Google Drive folder at the Chiniot-Faisalabad
           campus. Students needed past papers and notes — so they shared them with
           each other. When we discovered other campuses had the same problem, we
           built a platform to bring everyone together.

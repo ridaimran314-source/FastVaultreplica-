@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
-import { requireDb, requireFunctions } from "@/lib/firebase/client";
+import { getSupabase } from "@/lib/supabase/client";
+import { mapAdmissionResource, mapResource } from "@/lib/supabase/mappers";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
 import type { Resource, AdmissionResource } from "@/lib/types";
 import { capitalize, formatDate } from "@/lib/utils";
@@ -26,70 +19,62 @@ export default function AdminUploadsPage() {
   const [items, setItems] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [rejectReason, setRejectReason] = useState<Record<string, string>>({});
+  const [acting, setActing] = useState<string | null>(null);
 
   useEffect(() => {
-    const firestore = requireDb();
-    const q1 = query(
-      collection(firestore, "resources"),
-      where("status", "==", "pending"),
-      orderBy("created_at", "asc")
-    );
-    const q2 = query(
-      collection(firestore, "admission_resources"),
-      where("status", "==", "pending"),
-      orderBy("created_at", "asc")
-    );
+    async function load() {
+      const supabase = getSupabase();
+      const [resourcesRes, admissionRes] = await Promise.all([
+        supabase
+          .from("resources")
+          .select("*")
+          .eq("status", "pending")
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("admission_resources")
+          .select("*")
+          .eq("status", "pending")
+          .order("created_at", { ascending: true }),
+      ]);
 
-    const unsub1 = onSnapshot(q1, (snapshot) => {
-      const resources = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
+      const resources = (resourcesRes.data ?? []).map((row) => ({
+        ...mapResource(row),
         collection: "resources" as const,
-        created_at: d.data().created_at?.toDate?.() ?? new Date(),
-      })) as PendingItem[];
-
-      setItems((prev) => [
-        ...resources,
-        ...prev.filter((i) => i.collection !== "resources"),
-      ]);
-      setLoading(false);
-    });
-
-    const unsub2 = onSnapshot(q2, (snapshot) => {
-      const admission = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
+      }));
+      const admission = (admissionRes.data ?? []).map((row) => ({
+        ...mapAdmissionResource(row),
         collection: "admission_resources" as const,
-        created_at: d.data().created_at?.toDate?.() ?? new Date(),
-      })) as PendingItem[];
+      }));
 
-      setItems((prev) => [
-        ...prev.filter((i) => i.collection !== "admission_resources"),
-        ...admission,
-      ]);
-    });
+      setItems([...resources, ...admission]);
+      setLoading(false);
+    }
 
-    return () => {
-      unsub1();
-      unsub2();
-    };
+    load();
   }, []);
 
   const handleApprove = async (item: PendingItem) => {
-    const approveUpload = httpsCallable(requireFunctions(), "approveUpload");
-    await approveUpload({
-      resourceId: item.id,
-      collection: item.collection,
-    });
+    setActing(item.id);
+    const table =
+      item.collection === "resources" ? "resources" : "admission_resources";
+    await getSupabase()
+      .from(table)
+      .update({ status: "published" })
+      .eq("id", item.id);
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+    setActing(null);
   };
 
   const handleReject = async (item: PendingItem) => {
-    const rejectUpload = httpsCallable(requireFunctions(), "rejectUpload");
-    await rejectUpload({
-      resourceId: item.id,
-      collection: item.collection,
-      reason: rejectReason[item.id] || "Does not meet content policy",
-    });
+    setActing(item.id);
+    const table =
+      item.collection === "resources" ? "resources" : "admission_resources";
+    await getSupabase()
+      .from(table)
+      .update({ status: "rejected" })
+      .eq("id", item.id);
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+    setActing(null);
   };
 
   return (
@@ -140,11 +125,15 @@ export default function AdminUploadsPage() {
                     }
                   />
                   <div className="mt-4 flex gap-2">
-                    <Button onClick={() => handleApprove(item)}>
+                    <Button
+                      disabled={acting === item.id}
+                      onClick={() => handleApprove(item)}
+                    >
                       Approve
                     </Button>
                     <Button
                       variant="destructive"
+                      disabled={acting === item.id}
                       onClick={() => handleReject(item)}
                     >
                       Reject

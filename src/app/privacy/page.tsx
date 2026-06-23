@@ -23,8 +23,8 @@ export default function PrivacyPage() {
 
       <h2>Data Storage</h2>
       <p>
-        Your data is stored securely using Firebase (Google Cloud). Files are
-        stored in Firebase Storage and profile/metadata in Cloud Firestore.
+        Your data is stored securely using Supabase (PostgreSQL + Storage).
+        Files are stored in Supabase Storage and profile/metadata in the database.
       </p>
 
       <h2>Your Rights</h2>

@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { ArrowLeft, Calendar, MapPin } from "lucide-react";
-import { requireDb } from "@/lib/firebase/client";
+import { getSupabase } from "@/lib/supabase/client";
+import { mapEvent } from "@/lib/supabase/mappers";
 import type { Event } from "@/lib/types";
 import { capitalize, formatDate } from "@/lib/utils";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
@@ -20,23 +20,13 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     async function fetchEvent() {
-      const firestore = requireDb();
-      const snapshot = await getDoc(doc(firestore, "events", id));
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setEvent({
-          id: snapshot.id,
-          title: data.title,
-          description: data.description,
-          date: data.date?.toDate?.() ?? new Date(),
-          venue: data.venue,
-          campus: data.campus,
-          poster: data.poster,
-          organizer: data.organizer,
-          registration_url: data.registration_url,
-          created_at: data.created_at?.toDate?.() ?? new Date(),
-        });
-      }
+      const { data } = await getSupabase()
+        .from("events")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      setEvent(data ? mapEvent(data) : null);
       setLoading(false);
     }
     fetchEvent();

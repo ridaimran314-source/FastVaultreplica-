@@ -1,16 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
-import { requireDb, requireFunctions } from "@/lib/firebase/client";
+import { getSupabase } from "@/lib/supabase/client";
+import { mapFaq } from "@/lib/supabase/mappers";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import type { Faq } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
@@ -19,34 +13,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminFaqPage() {
+  const { user } = useAuth();
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState<string | null>(null);
 
   useEffect(() => {
-    const firestore = requireDb();
-    const q = query(
-      collection(firestore, "faqs"),
-      where("status", "==", "pending"),
-      orderBy("created_at", "asc")
-    );
-
-    return onSnapshot(q, (snapshot) => {
-      setFaqs(
-        snapshot.docs.map((d) => ({
-          id: d.id,
-          question: d.data().question,
-          answer: d.data().answer,
-          category: d.data().category,
-          author: d.data().author,
-          author_email: d.data().author_email,
-          status: d.data().status,
-          created_at: d.data().created_at?.toDate?.() ?? new Date(),
-        }))
-      );
-      setLoading(false);
-    });
+    getSupabase()
+      .from("faqs")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        setFaqs((data ?? []).map((row) => mapFaq(row)));
+        setLoading(false);
+      });
   }, []);
 
   const handlePublish = async (faq: Faq) => {
@@ -54,15 +36,18 @@ export default function AdminFaqPage() {
     if (!answer?.trim()) return;
 
     setPublishing(faq.id);
-    try {
-      const publishFaqAnswer = httpsCallable(requireFunctions(), "publishFaqAnswer");
-      await publishFaqAnswer({ faqId: faq.id, answer });
-    } catch (err) {
-      console.error("Publish failed:", err);
-      alert("Failed to publish. Ensure Cloud Functions are deployed.");
-    } finally {
-      setPublishing(null);
-    }
+    await getSupabase()
+      .from("faqs")
+      .update({
+        answer,
+        status: "published",
+        answered_by: user?.id,
+        answered_at: new Date().toISOString(),
+      })
+      .eq("id", faq.id);
+
+    setFaqs((prev) => prev.filter((f) => f.id !== faq.id));
+    setPublishing(null);
   };
 
   return (

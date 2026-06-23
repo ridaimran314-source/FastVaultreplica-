@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { requireDb } from "@/lib/firebase/client";
-import { getFirebaseErrorMessage, withTimeout } from "@/lib/firebase/errors";
-import { uploadUserFile } from "@/lib/firebase/upload";
+import { getSupabase } from "@/lib/supabase/client";
+import { getSupabaseErrorMessage } from "@/lib/supabase/errors";
+import { uploadUserFile } from "@/lib/supabase/upload";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { ADMISSION_SUBCATEGORIES } from "@/lib/constants";
@@ -38,26 +37,22 @@ function AdmissionUploadForm() {
     setError("");
 
     try {
-      const firestore = requireDb();
-      const fileUrl = await uploadUserFile(user.uid, file);
-
-      await withTimeout(
-        addDoc(collection(firestore, "admission_resources"), {
+      const fileUrl = await uploadUserFile(user.id, file);
+      const { error: insertError } = await getSupabase()
+        .from("admission_resources")
+        .insert({
           title,
           subcategory,
           file_url: fileUrl,
           downloads: 0,
-          uploaded_by: user.uid,
+          uploaded_by: user.id,
           status: "pending",
-          created_at: serverTimestamp(),
-        }),
-        20_000,
-        "Saving resource timed out. Enable Firestore (Build → Firestore → Create database), then try again."
-      );
+        });
 
+      if (insertError) throw insertError;
       setSuccess(true);
     } catch (err) {
-      setError(getFirebaseErrorMessage(err, "Upload failed."));
+      setError(getSupabaseErrorMessage(err, "Upload failed."));
     } finally {
       setLoading(false);
     }
@@ -120,7 +115,7 @@ function AdmissionUploadForm() {
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="file">File</Label>
+            <Label htmlFor="file">File (PDF, DOC, etc.)</Label>
             <Input
               id="file"
               type="file"

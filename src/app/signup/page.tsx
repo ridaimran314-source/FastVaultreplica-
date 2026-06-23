@@ -35,21 +35,7 @@ export default function SignupPage() {
     }
     setLoading(true);
     try {
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(
-              new Error(
-                "Request timed out. Enable Firestore Database in Firebase Console (Build → Firestore → Create database), then try again."
-              )
-            ),
-          20000
-        )
-      );
-      await Promise.race([
-        signup(email, password, name, campus),
-        timeout,
-      ]);
+      await signup(email, password, name, campus);
       router.push("/");
     } catch (err: unknown) {
       let message = "Signup failed. Please try again.";
@@ -69,7 +55,7 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Create account</CardTitle>
-          <CardDescription>Join the FASTVault community</CardDescription>
+          <CardDescription>Join the HarriDesk community</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

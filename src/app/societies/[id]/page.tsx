@@ -3,13 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { doc, getDoc } from "firebase/firestore";
-import { ArrowLeft, ExternalLink } from "lucide-react";
-import { requireDb } from "@/lib/firebase/client";
+import { ArrowLeft } from "lucide-react";
+import { getSupabase } from "@/lib/supabase/client";
+import { mapSociety } from "@/lib/supabase/mappers";
 import type { Society } from "@/lib/types";
 import { capitalize } from "@/lib/utils";
-import { DetailLoadingSkeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { LoadingPage } from "@/components/shared/LoadingSpinner";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function SocietyDetailPage() {
@@ -20,31 +19,19 @@ export default function SocietyDetailPage() {
 
   useEffect(() => {
     async function fetchSociety() {
-      try {
-        const snapshot = await getDoc(doc(requireDb(), "societies", id));
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          setSociety({
-            id: snapshot.id,
-            name: data.name,
-            description: data.description,
-            campus: data.campus,
-            category: data.category,
-            logo: data.logo,
-            members: data.members ?? 0,
-            social_links: data.social_links ?? {},
-            created_at: data.created_at?.toDate?.() ?? new Date(),
-          });
-        }
-      } catch {
-        setSociety(null);
-      }
+      const { data } = await getSupabase()
+        .from("societies")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      setSociety(data ? mapSociety(data) : null);
       setLoading(false);
     }
     fetchSociety();
   }, [id]);
 
-  if (loading) return <DetailLoadingSkeleton />;
+  if (loading) return <LoadingPage />;
   if (!society) {
     return (
       <div className="py-20 text-center">
@@ -73,25 +60,21 @@ export default function SocietyDetailPage() {
           </div>
           <h1 className="text-3xl font-bold">{society.name}</h1>
           <p className="mt-2 text-muted-foreground">
-            {capitalize(society.campus)}
-            {society.category && ` · ${society.category}`} · {society.members}{" "}
-            members
+            {capitalize(society.campus)} · {society.members} members
+            {society.category && ` · ${society.category}`}
           </p>
-          <p className="mt-6 leading-relaxed">{society.description}</p>
-
+          <p className="mt-6">{society.description}</p>
           {Object.keys(society.social_links).length > 0 && (
-            <div className="mt-8 flex flex-wrap gap-2">
+            <div className="mt-6 flex flex-wrap gap-3">
               {Object.entries(society.social_links).map(([platform, url]) => (
                 <a
                   key={platform}
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="text-sm text-vault-gold hover:underline"
                 >
-                  <Button variant="outline" size="sm">
-                    {capitalize(platform)}
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
+                  {capitalize(platform)}
                 </a>
               ))}
             </div>

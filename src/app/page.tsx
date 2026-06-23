@@ -13,8 +13,7 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db, isFirebaseConfigured } from "@/lib/firebase/client";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   CAMPUSES,
   FEATURE_CARDS,
@@ -58,31 +57,35 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (!isFirebaseConfigured() || !db) {
+    if (!isSupabaseConfigured()) {
       setStatsLoading(false);
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      doc(db, "stats", "summary"),
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          setStats({
-            totalFiles: data.totalFiles ?? 0,
-            totalResources: data.totalResources ?? 0,
-            admissionItems: data.admissionItems ?? 0,
-            campusEvents: data.campusEvents ?? 0,
-            societies: data.societies ?? 0,
-            registeredUsers: data.registeredUsers ?? 0,
-          });
-        }
-        setStatsLoading(false);
-      },
-      () => setStatsLoading(false)
-    );
+    async function loadStats() {
+      const supabase = getSupabase();
+      const [resources, admission, events, societies, users] = await Promise.all([
+        supabase.from("resources").select("id", { count: "exact", head: true }).eq("status", "published"),
+        supabase.from("admission_resources").select("id", { count: "exact", head: true }).eq("status", "published"),
+        supabase.from("events").select("id", { count: "exact", head: true }),
+        supabase.from("societies").select("id", { count: "exact", head: true }),
+        supabase.from("users").select("id", { count: "exact", head: true }),
+      ]);
 
-    return unsubscribe;
+      const totalResources = resources.count ?? 0;
+      const admissionItems = admission.count ?? 0;
+      setStats({
+        totalFiles: totalResources + admissionItems,
+        totalResources,
+        admissionItems,
+        campusEvents: events.count ?? 0,
+        societies: societies.count ?? 0,
+        registeredUsers: users.count ?? 0,
+      });
+      setStatsLoading(false);
+    }
+
+    loadStats();
   }, []);
 
   return (
@@ -127,8 +130,7 @@ export default function HomePage() {
             <Link href="/admission">
               <Button
                 size="lg"
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10"
+                className="bg-vault-gold font-semibold text-vault-navy shadow-lg hover:bg-vault-gold/90"
               >
                 Admission Hub
               </Button>

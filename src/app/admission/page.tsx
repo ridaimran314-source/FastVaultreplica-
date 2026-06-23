@@ -9,14 +9,8 @@ import {
   Upload,
   ArrowRight,
 } from "lucide-react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
-import { db, isFirebaseConfigured } from "@/lib/firebase/client";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { mapAdmissionResource } from "@/lib/supabase/mappers";
 import type { AdmissionResource } from "@/lib/types";
 import { capitalize, formatDate } from "@/lib/utils";
 import { ADMISSION_SUBCATEGORIES } from "@/lib/constants";
@@ -45,42 +39,28 @@ export default function AdmissionPage() {
   const [subcategory, setSubcategory] = useState("all");
 
   useEffect(() => {
-    if (!isFirebaseConfigured() || !db) {
+    if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
     }
 
-    const q = query(
-      collection(db, "admission_resources"),
-      where("status", "==", "published"),
-      orderBy("created_at", "desc")
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let items = snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          title: data.title,
-          description: data.description,
-          subcategory: data.subcategory,
-          file_url: data.file_url,
-          downloads: data.downloads ?? 0,
-          uploaded_by: data.uploaded_by,
-          status: data.status,
-          created_at: data.created_at?.toDate?.() ?? new Date(),
-        } as AdmissionResource;
-      });
+    async function load() {
+      let query = getSupabase()
+        .from("admission_resources")
+        .select("*")
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
 
       if (subcategory !== "all") {
-        items = items.filter((r) => r.subcategory === subcategory);
+        query = query.eq("subcategory", subcategory);
       }
 
-      setResources(items);
+      const { data } = await query;
+      setResources((data ?? []).map((row) => mapAdmissionResource(row)));
       setLoading(false);
-    });
+    }
 
-    return unsubscribe;
+    load();
   }, [subcategory]);
 
   return (

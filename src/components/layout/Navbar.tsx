@@ -17,7 +17,7 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-vault-gold font-bold text-vault-navy">
-            FV
+            HD
           </div>
           <span className="text-lg font-bold">{SITE_CONFIG.name}</span>
         </Link>

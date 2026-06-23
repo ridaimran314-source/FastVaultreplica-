@@ -1,5 +1,5 @@
 /**
- * Seed script for FASTVault replica demo data.
+ * Seed script for HarriDesk demo data.
  *
  * Prerequisites:
  * 1. Download service account key from Firebase Console
@@ -27,7 +27,7 @@ admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
 async function seed() {
-  console.log("Seeding FASTVault demo data...");
+  console.log("Seeding HarriDesk demo data...");
 
   await db.collection("stats").doc("summary").set({
     totalFiles: 150,
@@ -216,7 +216,7 @@ async function seed() {
 
   const testimonials = [
     {
-      quote: "FASTVault has been a game-changer for my studies.",
+      quote: "HarriDesk has been a game-changer for my studies.",
       name: "Sarah Ahmed",
       program: "Computer Science Student",
       campus: "Islamabad Campus",

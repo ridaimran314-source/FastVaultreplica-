@@ -7,22 +7,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail,
-  type User,
-} from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import {
-  auth,
-  db,
-  isFirebaseConfigured,
-  requireAuth,
-  requireDb,
-} from "@/lib/firebase/client";
+import type { User } from "@supabase/supabase-js";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { getSupabaseErrorMessage } from "@/lib/supabase/errors";
+import { mapUser } from "@/lib/supabase/mappers";
 import { isAdminEmail } from "@/lib/site-access";
 import type { UserProfile } from "@/lib/types";
 
@@ -30,7 +18,7 @@ interface AuthContextValue {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
-  firebaseReady: boolean;
+  supabaseReady: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (
     email: string,
@@ -49,51 +37,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const firebaseReady = isFirebaseConfigured();
+  const supabaseReady = isSupabaseConfigured();
+
+  const loadProfile = async (userId: string) => {
+    const supabase = getSupabase();
+    const { data } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle();
+    setProfile(data ? mapUser(data) : null);
+  };
 
   useEffect(() => {
-    if (!firebaseReady || !auth || !db) {
+    if (!supabaseReady) {
       setLoading(false);
       return;
     }
 
-    const firestore = db;
+    const supabase = getSupabase();
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        try {
-          const profileDoc = await getDoc(
-            doc(firestore, "users", firebaseUser.uid)
-          );
-          if (profileDoc.exists()) {
-            const data = profileDoc.data();
-            setProfile({
-              id: firebaseUser.uid,
-              name: data.name,
-              email: data.email,
-              photo: data.photo,
-              campus: data.campus,
-              role: data.role,
-              created_at: data.created_at?.toDate?.() ?? new Date(),
-            });
-          } else {
-            setProfile(null);
-          }
-        } catch {
-          setProfile(null);
-        }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        loadProfile(currentUser.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        loadProfile(currentUser.id);
       } else {
         setProfile(null);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
-  }, [firebaseReady]);
+    return () => subscription.unsubscribe();
+  }, [supabaseReady]);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(requireAuth(), email, password);
+    const { error } = await getSupabase().auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw new Error(getSupabaseErrorMessage(error));
   };
 
   const signup = async (
@@ -102,57 +96,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: string,
     campus: string
   ) => {
-    const firebaseAuth = requireAuth();
-    const firestore = requireDb();
+    const supabase = getSupabase();
+    const role = isAdminEmail(email) ? "admin" : "student";
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, campus, role },
+      },
+    });
+    if (error) throw new Error(getSupabaseErrorMessage(error));
+    if (!data.user) throw new Error("Signup failed. Please try again.");
 
-    let cred;
-    try {
-      cred = await createUserWithEmailAndPassword(
-        firebaseAuth,
-        email,
-        password
-      );
-    } catch (err: unknown) {
-      const code =
-        err && typeof err === "object" && "code" in err
-          ? String((err as { code: string }).code)
-          : "";
-      if (code === "auth/email-already-in-use") {
+    // Profile is created by database trigger; only insert manually if logged in
+    const { data: existing } = await supabase
+      .from("users")
+      .select("id")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    if (!existing) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        const { error: profileError } = await supabase.from("users").insert({
+          id: data.user.id,
+          name,
+          email,
+          campus,
+          role,
+        });
+        if (profileError) {
+          throw new Error(getSupabaseErrorMessage(profileError, "Profile save failed."));
+        }
+      } else {
         throw new Error(
-          "This email is already registered. Go to Login instead."
+          "Account created! Go to Login and sign in. If login fails, disable 'Confirm email' in Supabase → Authentication → Providers → Email."
         );
       }
-      if (code === "auth/weak-password") {
-        throw new Error("Password must be at least 6 characters.");
-      }
-      if (code === "auth/invalid-email") {
-        throw new Error("Invalid email address.");
-      }
-      throw err;
     }
 
-    const role = isAdminEmail(email) ? "admin" : "student";
-    try {
-      await setDoc(doc(firestore, "users", cred.user.uid), {
-        name,
-        email,
-        campus,
-        role,
-        created_at: serverTimestamp(),
-      });
-    } catch {
-      throw new Error(
-        "Account created but profile save failed. Enable Firestore in Firebase Console, then try Login."
-      );
+    if (data.session) {
+      await loadProfile(data.user.id);
     }
   };
 
   const logout = async () => {
-    await signOut(requireAuth());
+    await getSupabase().auth.signOut();
+    setProfile(null);
   };
 
   const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(requireAuth(), email);
+    const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    if (error) throw new Error(getSupabaseErrorMessage(error));
   };
 
   return (
@@ -161,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         profile,
         loading,
-        firebaseReady,
+        supabaseReady,
         login,
         signup,
         logout,

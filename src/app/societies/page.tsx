@@ -1,15 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { db, isFirebaseConfigured } from "@/lib/firebase/client";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { mapSociety } from "@/lib/supabase/mappers";
 import { CAMPUSES, SOCIETY_CATEGORIES } from "@/lib/constants";
 import type { Society } from "@/lib/types";
 import { capitalize } from "@/lib/utils";
@@ -31,35 +26,22 @@ export default function SocietiesPage() {
   }, []);
 
   useEffect(() => {
-    if (!isFirebaseConfigured() || !db) {
+    if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
     }
 
-    const q = query(collection(db, "societies"), orderBy("name"));
+    async function load() {
+      const { data } = await getSupabase()
+        .from("societies")
+        .select("*")
+        .order("name");
 
-    return onSnapshot(q, (snapshot) => {
-      let items = snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          name: data.name,
-          description: data.description,
-          campus: data.campus,
-          category: data.category,
-          logo: data.logo,
-          members: data.members ?? 0,
-          social_links: data.social_links ?? {},
-          created_at: data.created_at?.toDate?.() ?? new Date(),
-        } as Society;
-      });
+      let items = (data ?? []).map((row) => mapSociety(row));
 
-      if (campus !== "all") {
-        items = items.filter((s) => s.campus === campus);
-      }
-      if (category !== "all") {
+      if (campus !== "all") items = items.filter((s) => s.campus === campus);
+      if (category !== "all")
         items = items.filter((s) => s.category === category);
-      }
       if (search.trim()) {
         const term = search.toLowerCase();
         items = items.filter(
@@ -71,7 +53,9 @@ export default function SocietiesPage() {
 
       setSocieties(items);
       setLoading(false);
-    });
+    }
+
+    load();
   }, [campus, category, search]);
 
   return (

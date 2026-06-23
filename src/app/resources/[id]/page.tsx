@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
-import { db, isFirebaseConfigured, requireDb } from "@/lib/firebase/client";
+import { getSupabase } from "@/lib/supabase/client";
+import { mapResource } from "@/lib/supabase/mappers";
 import type { Resource } from "@/lib/types";
 import { capitalize, formatDate } from "@/lib/utils";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
@@ -21,28 +21,17 @@ export default function ResourceDetailPage() {
 
   useEffect(() => {
     async function fetchResource() {
-      const firestore = requireDb();
-      const snapshot = await getDoc(doc(firestore, "resources", id));
-      if (!snapshot.exists() || snapshot.data().status !== "published") {
+      const { data } = await getSupabase()
+        .from("resources")
+        .select("*")
+        .eq("id", id)
+        .eq("status", "published")
+        .maybeSingle();
+
+      if (!data) {
         setNotFound(true);
       } else {
-        const data = snapshot.data();
-        setResource({
-          id: snapshot.id,
-          title: data.title,
-          description: data.description,
-          type: data.type,
-          course: data.course,
-          semester: data.semester,
-          campus: data.campus,
-          department: data.department,
-          file_url: data.file_url,
-          downloads: data.downloads ?? 0,
-          uploaded_by: data.uploaded_by,
-          uploader_name: data.uploader_name,
-          status: data.status,
-          created_at: data.created_at?.toDate?.() ?? new Date(),
-        });
+        setResource(mapResource(data));
       }
       setLoading(false);
     }

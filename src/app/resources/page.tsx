@@ -1,29 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-  getDocs,
-} from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
-import { db, functions, isFirebaseConfigured, requireDb, requireFunctions } from "@/lib/firebase/client";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { mapResource } from "@/lib/supabase/mappers";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useRequireAuth } from "@/lib/auth/useProtectedRoute";
-import { CAMPUSES, DEPARTMENTS, RESOURCE_TYPES } from "@/lib/constants";
+import { CAMPUSES, COURSES, DEPARTMENTS, RESOURCE_TYPES } from "@/lib/constants";
 import type { Resource } from "@/lib/types";
 import { debounce } from "@/lib/utils";
 import { ResourceCard } from "@/components/resources/ResourceCard";
-import { LoadingPage, SkeletonCard } from "@/components/shared/LoadingSpinner";
+import { LoadingPage } from "@/components/shared/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -39,7 +27,6 @@ export default function ResourcesPage() {
   const [department, setDepartment] = useState("all");
   const [semester, setSemester] = useState("all");
   const [type, setType] = useState("all");
-  const [courses, setCourses] = useState<string[]>([]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -48,131 +35,95 @@ export default function ResourcesPage() {
   }, []);
 
   useEffect(() => {
-    if (!isFirebaseConfigured() || !db) {
+    if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
     }
 
-    let q = query(
-      collection(db, "resources"),
-      where("status", "==", "published"),
-      orderBy("created_at", "desc")
-    );
+    async function loadResources() {
+      const supabase = getSupabase();
+      let query = supabase
+        .from("resources")
+        .select("*")
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
 
-    if (campus !== "all") {
-      q = query(q, where("campus", "==", campus));
-    }
-    if (department !== "all") {
-      q = query(q, where("department", "==", department));
-    }
-    if (semester !== "all") {
-      q = query(q, where("semester", "==", Number(semester)));
-    }
-    if (type !== "all") {
-      q = query(q, where("type", "==", type));
-    }
+      if (campus !== "all") query = query.eq("campus", campus);
+      if (department !== "all") query = query.eq("department", department);
+      if (semester !== "all") query = query.eq("semester", Number(semester));
+      if (type !== "all") query = query.eq("type", type);
+      if (course !== "all") query = query.eq("course", course);
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const items = snapshot.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            title: data.title,
-            description: data.description,
-            type: data.type,
-            course: data.course,
-            semester: data.semester,
-            campus: data.campus,
-            department: data.department,
-            file_url: data.file_url,
-            downloads: data.downloads ?? 0,
-            uploaded_by: data.uploaded_by,
-            uploader_name: data.uploader_name,
-            status: data.status,
-            search_keywords: data.search_keywords,
-            created_at: data.created_at?.toDate?.() ?? new Date(),
-          } as Resource;
-        });
-
-        const courseSet = new Set(items.map((r) => r.course));
-        setCourses(Array.from(courseSet).sort());
-
-        let filtered = items;
-        if (course !== "all") {
-          filtered = filtered.filter((r) => r.course === course);
-        }
-        if (search.trim()) {
-          const term = search.toLowerCase();
-          filtered = filtered.filter(
-            (r) =>
-              r.title.toLowerCase().includes(term) ||
-              r.course.toLowerCase().includes(term) ||
-              r.search_keywords?.some((k) => k.includes(term))
-          );
-        }
-
-        setResources(filtered);
+      const { data, error } = await query;
+      if (error) {
         setLoading(false);
-      },
-      () => setLoading(false)
-    );
+        return;
+      }
 
-    return unsubscribe;
+      let items = (data ?? []).map((row) => mapResource(row));
+
+      if (search.trim()) {
+        const term = search.toLowerCase();
+        items = items.filter(
+          (r) =>
+            r.title.toLowerCase().includes(term) ||
+            r.course.toLowerCase().includes(term) ||
+            r.search_keywords?.some((k) => k.includes(term))
+        );
+      }
+
+      setResources(items);
+      setLoading(false);
+    }
+
+    loadResources();
   }, [campus, course, department, semester, type, search]);
 
   useEffect(() => {
-    if (!user || !isFirebaseConfigured() || !db) return;
+    if (!user || !isSupabaseConfigured()) return;
 
-    const q = query(
-      collection(db, "bookmarks"),
-      where("user_id", "==", user.uid),
-      where("type", "==", "resource")
-    );
-
-    getDocs(q).then((snapshot) => {
-      setBookmarks(new Set(snapshot.docs.map((d) => d.data().resource_id)));
-    });
+    getSupabase()
+      .from("bookmarks")
+      .select("resource_id")
+      .eq("user_id", user.id)
+      .eq("type", "resource")
+      .then(({ data }) => {
+        setBookmarks(new Set((data ?? []).map((b) => b.resource_id)));
+      });
   }, [user]);
 
   const handleBookmark = async (resourceId: string) => {
     if (!requireAuth() || !user) return;
-    const firestore = requireDb();
+    const supabase = getSupabase();
 
     if (bookmarks.has(resourceId)) {
-      const q = query(
-        collection(firestore, "bookmarks"),
-        where("user_id", "==", user.uid),
-        where("resource_id", "==", resourceId)
-      );
-      const snapshot = await getDocs(q);
-      snapshot.docs.forEach((d) => deleteDoc(doc(firestore, "bookmarks", d.id)));
       setBookmarks((prev) => {
         const next = new Set(prev);
         next.delete(resourceId);
         return next;
       });
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("resource_id", resourceId)
+        .eq("type", "resource");
     } else {
-      await addDoc(collection(firestore, "bookmarks"), {
-        user_id: user.uid,
+      setBookmarks((prev) => new Set(prev).add(resourceId));
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
         resource_id: resourceId,
         type: "resource",
-        created_at: serverTimestamp(),
       });
-      setBookmarks((prev) => new Set(prev).add(resourceId));
     }
   };
 
   const handleDownload = async (resource: Resource) => {
-    try {
-      if (isFirebaseConfigured()) {
-        const incrementDownload = httpsCallable(requireFunctions(), "incrementDownloadCount");
-        await incrementDownload({ resourceId: resource.id, collection: "resources" });
-      }
-    } catch {
-      // Continue with download even if counter fails
-    }
+    getSupabase()
+      .from("resources")
+      .update({ downloads: resource.downloads + 1 })
+      .eq("id", resource.id)
+      .then(() => {});
     window.open(resource.file_url, "_blank");
   };
 
@@ -187,7 +138,7 @@ export default function ResourcesPage() {
   };
 
   const debouncedSearch = useCallback(
-    debounce((value: string) => setSearch(value), 300),
+    debounce((value: string) => setSearch(value), 200),
     []
   );
 
@@ -235,7 +186,7 @@ export default function ResourcesPage() {
           className="rounded-lg border px-3 py-2 text-sm"
         >
           <option value="all">All Courses</option>
-          {courses.map((c) => (
+          {COURSES.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
@@ -271,10 +222,10 @@ export default function ResourcesPage() {
         </select>
       </div>
 
-      {!isFirebaseConfigured() && (
+      {!isSupabaseConfigured() && (
         <div className="mb-6 rounded-lg border border-vault-gold/50 bg-vault-gold/10 p-4 text-sm">
-          Firebase is not configured. Copy <code>.env.example</code> to{" "}
-          <code>.env.local</code> and add your Firebase credentials to load resources.
+          Supabase is not configured. Copy <code>.env.example</code> to{" "}
+          <code>.env.local</code> and add your Supabase credentials.
         </div>
       )}
 

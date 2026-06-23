@@ -2,13 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { requireDb } from "@/lib/firebase/client";
-import { getFirebaseErrorMessage, withTimeout } from "@/lib/firebase/errors";
-import { uploadUserFile } from "@/lib/firebase/upload";
+import { getSupabase } from "@/lib/supabase/client";
+import { getSupabaseErrorMessage } from "@/lib/supabase/errors";
+import { uploadUserFile } from "@/lib/supabase/upload";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { CAMPUSES, DEPARTMENTS, RESOURCE_TYPES } from "@/lib/constants";
+import {
+  CAMPUSES,
+  COURSES,
+  DEPARTMENTS,
+  MAX_UPLOAD_MB,
+  RESOURCE_TYPES,
+} from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,11 +37,23 @@ function UploadForm() {
     title: "",
     description: "",
     type: "notes",
-    course: "",
+    course: COURSES[0] as string,
     semester: "1",
     campus: profile?.campus || "",
     department: "CS",
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] || null;
+    if (selected && selected.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      setError(`File must be ${MAX_UPLOAD_MB} MB or smaller.`);
+      setFile(null);
+      e.target.value = "";
+      return;
+    }
+    setError("");
+    setFile(selected);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,39 +66,35 @@ function UploadForm() {
     setError("");
 
     try {
-      const firestore = requireDb();
-      const fileUrl = await uploadUserFile(user.uid, file);
-
+      const fileUrl = await uploadUserFile(user.id, file, {
+        maxBytes: MAX_UPLOAD_MB * 1024 * 1024,
+      });
       const keywords = [
         form.title.toLowerCase(),
         form.course.toLowerCase(),
         ...form.course.toLowerCase().split(" "),
       ];
 
-      await withTimeout(
-        addDoc(collection(firestore, "resources"), {
-          title: form.title,
-          description: form.description,
-          type: form.type,
-          course: form.course,
-          semester: Number(form.semester),
-          campus: form.campus,
-          department: form.department,
-          file_url: fileUrl,
-          downloads: 0,
-          uploaded_by: user.uid,
-          uploader_name: profile?.name || user.email,
-          status: "pending",
-          search_keywords: keywords,
-          created_at: serverTimestamp(),
-        }),
-        20_000,
-        "Saving resource timed out. Enable Firestore (Build → Firestore → Create database), then try again."
-      );
+      const { error: insertError } = await getSupabase().from("resources").insert({
+        title: form.title,
+        description: form.description,
+        type: form.type,
+        course: form.course,
+        semester: Number(form.semester),
+        campus: form.campus,
+        department: form.department,
+        file_url: fileUrl,
+        downloads: 0,
+        uploaded_by: user.id,
+        uploader_name: profile?.name || user.email,
+        status: "pending",
+        search_keywords: keywords,
+      });
 
+      if (insertError) throw insertError;
       setSuccess(true);
     } catch (err) {
-      setError(getFirebaseErrorMessage(err, "Upload failed."));
+      setError(getSupabaseErrorMessage(err, "Upload failed."));
     } finally {
       setLoading(false);
     }
@@ -178,14 +191,19 @@ function UploadForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="course">Course</Label>
-            <Input
-              id="course"
-              placeholder="e.g. Data Structures"
+            <Label>Course</Label>
+            <select
               value={form.course}
               onChange={(e) => setForm({ ...form, course: e.target.value })}
+              className="w-full rounded-lg border px-3 py-2 text-sm"
               required
-            />
+            >
+              {COURSES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -222,12 +240,12 @@ function UploadForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="file">File (PDF, DOC, etc.)</Label>
+            <Label htmlFor="file">File (PDF, DOC, etc.) — max {MAX_UPLOAD_MB} MB</Label>
             <Input
               id="file"
               type="file"
               accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={handleFileChange}
               required
             />
           </div>

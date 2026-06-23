@@ -21,7 +21,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, firebaseReady } = useAuth();
+  const { login, supabaseReady } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
@@ -29,8 +29,8 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!firebaseReady) {
-      setError("Firebase is not configured. Add credentials to .env.local first.");
+    if (!supabaseReady) {
+      setError("Supabase is not configured. Add credentials to .env.local first.");
       return;
     }
     setLoading(true);
@@ -48,7 +48,7 @@ function LoginForm() {
     <Card className="w-full max-w-md border-0 shadow-xl">
       <CardHeader className="text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-vault-gold font-bold text-vault-navy text-xl">
-          FV
+          HD
         </div>
         <CardTitle className="text-2xl">Welcome Back</CardTitle>
         <CardDescription>

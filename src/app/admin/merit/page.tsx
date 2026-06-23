@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { collection, addDoc } from "firebase/firestore";
-import { requireDb } from "@/lib/firebase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
 import { CAMPUSES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -24,12 +23,13 @@ export default function AdminMeritPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await addDoc(collection(requireDb(), "merit_history"), {
+      const { error } = await getSupabase().from("merit_history").insert({
         campus: form.campus,
         program: form.program,
         year: parseInt(form.year),
         closing_merit: parseFloat(form.closing_merit),
       });
+      if (error) throw error;
       setSuccess(true);
     } finally {
       setLoading(false);

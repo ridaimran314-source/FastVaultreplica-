@@ -2,13 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
-import { db, isFirebaseConfigured } from "@/lib/firebase/client";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { mapMerit } from "@/lib/supabase/mappers";
 import type { MeritHistory, ProgramType } from "@/lib/types";
 import {
   calculateNatAggregate,
@@ -38,16 +33,14 @@ export default function CalculatorPage() {
   const [meritProgram, setMeritProgram] = useState("all");
 
   useEffect(() => {
-    if (!isFirebaseConfigured() || !db) return;
-    const q = query(collection(db, "merit_history"), orderBy("year", "desc"));
-    return onSnapshot(q, (snapshot) => {
-      setMeritData(
-        snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        })) as MeritHistory[]
-      );
-    });
+    if (!isSupabaseConfigured()) return;
+    getSupabase()
+      .from("merit_history")
+      .select("*")
+      .order("year", { ascending: false })
+      .then(({ data }) => {
+        setMeritData((data ?? []).map((row) => mapMerit(row)));
+      });
   }, []);
 
   const matricNum = parseFloat(matric) || 0;

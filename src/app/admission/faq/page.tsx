@@ -1,17 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  serverTimestamp,
-} from "firebase/firestore";
 import { Search, MessageCircleQuestion } from "lucide-react";
-import { db, isFirebaseConfigured, requireDb } from "@/lib/firebase/client";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { mapFaq } from "@/lib/supabase/mappers";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useRequireAuth } from "@/lib/auth/useProtectedRoute";
 import { FAQ_CATEGORIES } from "@/lib/constants";
@@ -42,30 +34,19 @@ export default function FaqPage() {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (!isFirebaseConfigured() || !db) {
+    if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
     }
 
-    const q = query(
-      collection(db, "faqs"),
-      where("status", "==", "published"),
-      orderBy("created_at", "desc")
-    );
+    async function load() {
+      const { data } = await getSupabase()
+        .from("faqs")
+        .select("*")
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
 
-    return onSnapshot(q, (snapshot) => {
-      let items = snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          question: data.question,
-          answer: data.answer,
-          category: data.category,
-          author: data.author,
-          status: data.status,
-          created_at: data.created_at?.toDate?.() ?? new Date(),
-        } as Faq;
-      });
+      let items = (data ?? []).map((row) => mapFaq(row));
 
       if (category !== "all") {
         items = items.filter((f) => f.category === category);
@@ -81,7 +62,9 @@ export default function FaqPage() {
 
       setFaqs(items);
       setLoading(false);
-    });
+    }
+
+    load();
   }, [category, search]);
 
   const handleAskSubmit = async (e: React.FormEvent) => {
@@ -90,15 +73,15 @@ export default function FaqPage() {
 
     setSubmitting(true);
     try {
-      await addDoc(collection(requireDb(), "faqs"), {
+      const { error } = await getSupabase().from("faqs").insert({
         question: askForm.question,
         answer: null,
         category: askForm.category,
         author: askForm.name,
         author_email: askForm.email,
         status: "pending",
-        created_at: serverTimestamp(),
       });
+      if (error) throw error;
       setSubmitted(true);
       setShowAskForm(false);
     } finally {
