@@ -87,7 +87,7 @@ function UploadForm() {
         downloads: 0,
         uploaded_by: user.id,
         uploader_name: profile?.name || user.email,
-        status: "pending",
+        status: "published",
         search_keywords: keywords,
       });
 
@@ -108,8 +108,8 @@ function UploadForm() {
             Upload Submitted!
           </h2>
           <p className="mb-6 text-muted-foreground">
-            Your resource is in review and will typically be processed within
-            2–5 business days. You&apos;ll see it in the directory once approved.
+            Your resource is now live in the directory. If you don&apos;t see it
+            right away, set all filters to &quot;All&quot; on the Resources page.
           </p>
           <div className="flex justify-center gap-4">
             <Button onClick={() => router.push("/resources")}>
@@ -254,7 +254,7 @@ function UploadForm() {
             <a href="/content-policy" className="text-vault-gold hover:underline">
               Content Policy
             </a>
-            . Uploads are reviewed before publication.
+            . Uploads appear in the directory immediately.
           </p>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Uploading..." : "Submit for Review"}

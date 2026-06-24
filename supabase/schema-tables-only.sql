@@ -105,7 +105,7 @@ create policy "resources_read" on public.resources for select using (
   status = 'published' or public.is_admin() or (auth.uid() = uploaded_by)
 );
 create policy "resources_insert" on public.resources for insert with check (
-  auth.uid() is not null and auth.uid() = uploaded_by and status = 'pending'
+  auth.uid() is not null and auth.uid() = uploaded_by and status in ('pending', 'published')
 );
 create policy "resources_admin" on public.resources for all using (public.is_admin());
 
