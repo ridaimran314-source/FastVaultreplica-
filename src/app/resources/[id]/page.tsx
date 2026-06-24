@@ -6,6 +6,10 @@ import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
 import { getSupabase } from "@/lib/supabase/client";
 import { mapResource } from "@/lib/supabase/mappers";
+import {
+  canPreviewDocument,
+  getDocumentPreviewUrl,
+} from "@/lib/document-preview";
 import type { Resource } from "@/lib/types";
 import { capitalize, formatDate } from "@/lib/utils";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
@@ -50,10 +54,11 @@ export default function ResourceDetailPage() {
     );
   }
 
-  const isPdf = /\.pdf($|\?)/i.test(resource.file_url);
+  const previewUrl = getDocumentPreviewUrl(resource.file_url);
+  const canPreview = canPreviewDocument(resource.file_url);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <Link
         href="/resources"
         className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -84,30 +89,30 @@ export default function ResourceDetailPage() {
             <p className="mt-6 text-foreground/80">{resource.description}</p>
           )}
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6">
             <Button size="lg" asChild>
-              <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
+              <a
+                href={resource.file_url}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Download className="h-4 w-4" />
                 Download File
               </a>
             </Button>
-            <Button size="lg" variant="outline" asChild>
-              <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
-                Open in New Tab
-              </a>
-            </Button>
           </div>
 
-          {isPdf ? (
+          {canPreview && previewUrl ? (
             <iframe
-              src={resource.file_url}
+              src={previewUrl}
               title={resource.title}
-              className="mt-8 h-[70vh] w-full rounded-lg border bg-muted"
+              className="mt-8 h-[75vh] w-full rounded-lg border bg-muted"
             />
           ) : (
             <p className="mt-6 text-sm text-muted-foreground">
-              Preview is available for PDF files. Use Download or Open in New Tab
-              for other file types.
+              Inline preview is not available for this file type. Use Download
+              to save the file.
             </p>
           )}
         </CardContent>
