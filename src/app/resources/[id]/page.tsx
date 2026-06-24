@@ -107,7 +107,7 @@ export default function ResourceDetailPage() {
             <iframe
               src={previewUrl}
               title={resource.title}
-              className="mt-8 h-[75vh] w-full rounded-lg border bg-muted"
+              className="mt-8 h-[60vh] min-h-[320px] w-full rounded-lg border bg-white sm:h-[75vh]"
             />
           ) : (
             <p className="mt-6 text-sm text-muted-foreground">

@@ -12,7 +12,6 @@ import type { Resource } from "@/lib/types";
 import { capitalize, formatDate } from "@/lib/utils";
 import {
   canPreviewDocument,
-  getDocumentPreviewUrl,
 } from "@/lib/document-preview";
 import { DocumentPreviewModal } from "@/components/resources/DocumentPreviewModal";
 import { Button } from "@/components/ui/button";
@@ -34,11 +33,10 @@ export function ResourceCard({
   onShare,
 }: ResourceCardProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const previewUrl = getDocumentPreviewUrl(resource.file_url);
   const canPreview = canPreviewDocument(resource.file_url);
 
   const handleView = () => {
-    if (canPreview && previewUrl) {
+    if (canPreview) {
       setPreviewOpen(true);
       return;
     }
@@ -77,12 +75,12 @@ export function ResourceCard({
             {resource.uploader_name && <span>by {resource.uploader_name}</span>}
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <Button
               variant="default"
               size="sm"
               onClick={handleView}
-              className="flex-1 sm:flex-none"
+              className="col-span-1 h-10"
             >
               <Eye className="h-4 w-4" />
               View
@@ -91,7 +89,7 @@ export function ResourceCard({
               variant="outline"
               size="sm"
               onClick={onDownload}
-              className="flex-1 sm:flex-none"
+              className="col-span-1 h-10"
             >
               <Download className="h-4 w-4" />
               Download
@@ -100,7 +98,7 @@ export function ResourceCard({
               variant="outline"
               size="icon"
               onClick={onBookmark}
-              className={isBookmarked ? "border-vault-gold text-vault-gold" : ""}
+              className={`col-span-1 h-10 w-full sm:w-10 ${isBookmarked ? "border-vault-gold text-vault-gold" : ""}`}
               aria-label="Bookmark"
             >
               <Bookmark
@@ -111,6 +109,7 @@ export function ResourceCard({
               variant="ghost"
               size="icon"
               onClick={onShare}
+              className="col-span-1 h-10 w-full sm:w-10"
               aria-label="Share"
             >
               <Share2 className="h-4 w-4" />
@@ -119,10 +118,10 @@ export function ResourceCard({
         </CardContent>
       </Card>
 
-      {previewOpen && previewUrl && (
+      {previewOpen && (
         <DocumentPreviewModal
           title={resource.title}
-          previewUrl={previewUrl}
+          fileUrl={resource.file_url}
           onClose={() => setPreviewOpen(false)}
         />
       )}
