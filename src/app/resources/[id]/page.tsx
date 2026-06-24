@@ -21,21 +21,21 @@ export default function ResourceDetailPage() {
 
   useEffect(() => {
     async function fetchResource() {
-      const { data } = await getSupabase()
+      const { data, error } = await getSupabase()
         .from("resources")
         .select("*")
         .eq("id", id)
         .eq("status", "published")
         .maybeSingle();
 
-      if (!data) {
+      if (error || !data) {
         setNotFound(true);
       } else {
         setResource(mapResource(data));
       }
       setLoading(false);
     }
-    fetchResource();
+    if (id) fetchResource();
   }, [id]);
 
   if (loading) return <LoadingPage />;
@@ -49,6 +49,8 @@ export default function ResourceDetailPage() {
       </div>
     );
   }
+
+  const isPdf = /\.pdf($|\?)/i.test(resource.file_url);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -82,14 +84,32 @@ export default function ResourceDetailPage() {
             <p className="mt-6 text-foreground/80">{resource.description}</p>
           )}
 
-          <div className="mt-8">
-            <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
-              <Button size="lg">
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button size="lg" asChild>
+              <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
                 <Download className="h-4 w-4" />
                 Download File
-              </Button>
-            </a>
+              </a>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
+                Open in New Tab
+              </a>
+            </Button>
           </div>
+
+          {isPdf ? (
+            <iframe
+              src={resource.file_url}
+              title={resource.title}
+              className="mt-8 h-[70vh] w-full rounded-lg border bg-muted"
+            />
+          ) : (
+            <p className="mt-6 text-sm text-muted-foreground">
+              Preview is available for PDF files. Use Download or Open in New Tab
+              for other file types.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

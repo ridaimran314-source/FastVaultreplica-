@@ -57,12 +57,12 @@ export function ResourceCard({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Link href={`/resources/${resource.id}`}>
-            <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/resources/${resource.id}`}>
               <Eye className="h-4 w-4" />
               View
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button variant="outline" size="sm" onClick={onDownload}>
             <Download className="h-4 w-4" />
             Download
