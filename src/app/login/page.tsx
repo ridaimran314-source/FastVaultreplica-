@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import { AuthShell } from "@/components/layout/AuthShell";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -45,7 +46,7 @@ function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md border-0 shadow-xl">
+    <Card className="w-full border-0 shadow-2xl shadow-vault-navy/10">
       <CardHeader className="text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-vault-gold font-bold text-vault-navy text-xl">
           HD
@@ -106,10 +107,10 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-[75vh] items-center justify-center bg-muted/30 px-4 py-12">
-      <Suspense fallback={<div>Loading...</div>}>
+    <AuthShell>
+      <Suspense fallback={<div className="text-center text-sm text-muted-foreground">Loading...</div>}>
         <LoginForm />
       </Suspense>
-    </div>
+    </AuthShell>
   );
 }

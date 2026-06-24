@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X, LogOut, User, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -10,46 +11,62 @@ import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const { user, profile, logout, isAdmin, loading } = useAuth();
 
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-vault-gold font-bold text-vault-navy">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 shadow-sm backdrop-blur-md">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <Link href="/" className="group flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-vault-gold to-amber-400 font-bold text-vault-navy shadow-sm transition-transform group-hover:scale-105">
             HD
           </div>
-          <span className="text-lg font-bold">{SITE_CONFIG.name}</span>
+          <div className="leading-tight">
+            <span className="block text-lg font-bold tracking-tight">
+              {SITE_CONFIG.name}
+            </span>
+            <span className="hidden text-[11px] font-medium text-muted-foreground sm:block">
+              FAST-NUCES Academic Hub
+            </span>
+          </div>
         </Link>
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isActive(link.href)
+                  ? "bg-vault-navy text-white"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
             >
               {link.label}
             </Link>
           ))}
         </div>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
           {!loading && (
             <>
               {user ? (
                 <>
                   {isAdmin && (
-                    <Link href="/admin">
-                      <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/admin">
                         <Shield className="h-4 w-4" />
                         Admin
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   )}
-                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <User className="h-4 w-4" />
-                    {profile?.name || user.email}
+                  <span className="flex max-w-[140px] items-center gap-1 truncate text-sm text-muted-foreground">
+                    <User className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{profile?.name || user.email}</span>
                   </span>
                   <Button variant="outline" size="sm" onClick={() => logout()}>
                     <LogOut className="h-4 w-4" />
@@ -58,14 +75,12 @@ export function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link href="/login">
-                    <Button variant="ghost" size="sm">
-                      Login
-                    </Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button size="sm">Sign Up</Button>
-                  </Link>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button size="sm" asChild>
+                    <Link href="/signup">Sign Up</Link>
+                  </Button>
                 </>
               )}
             </>
@@ -73,7 +88,7 @@ export function Navbar() {
         </div>
 
         <button
-          className="md:hidden"
+          className="rounded-lg p-2 hover:bg-muted md:hidden"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
         >
@@ -81,18 +96,18 @@ export function Navbar() {
         </button>
       </nav>
 
-      <div
-        className={cn(
-          "border-t md:hidden",
-          open ? "block" : "hidden"
-        )}
-      >
-        <div className="flex flex-col gap-2 px-4 py-4">
+      <div className={cn("border-t md:hidden", open ? "block" : "hidden")}>
+        <div className="flex flex-col gap-1 px-4 py-4">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+              className={cn(
+                "rounded-lg px-3 py-2.5 text-sm font-medium",
+                isActive(link.href)
+                  ? "bg-vault-navy text-white"
+                  : "hover:bg-muted"
+              )}
               onClick={() => setOpen(false)}
             >
               {link.label}
@@ -102,11 +117,11 @@ export function Navbar() {
           {user ? (
             <>
               {isAdmin && (
-                <Link href="/admin" onClick={() => setOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <Link href="/admin" onClick={() => setOpen(false)}>
                     Admin Panel
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               )}
               <Button
                 variant="outline"
@@ -121,14 +136,16 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" onClick={() => setOpen(false)}>
-                <Button variant="ghost" className="w-full">
+              <Button variant="ghost" className="w-full" asChild>
+                <Link href="/login" onClick={() => setOpen(false)}>
                   Login
-                </Button>
-              </Link>
-              <Link href="/signup" onClick={() => setOpen(false)}>
-                <Button className="w-full">Sign Up</Button>
-              </Link>
+                </Link>
+              </Button>
+              <Button className="w-full" asChild>
+                <Link href="/signup" onClick={() => setOpen(false)}>
+                  Sign Up
+                </Link>
+              </Button>
             </>
           )}
         </div>

@@ -50,6 +50,10 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
       },
+      boxShadow: {
+        soft: "0 4px 24px -4px rgba(10, 22, 40, 0.12)",
+        card: "0 1px 3px rgba(10, 22, 40, 0.06), 0 8px 24px -8px rgba(10, 22, 40, 0.1)",
+      },
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
         "slide-up": "slideUp 0.5s ease-out",

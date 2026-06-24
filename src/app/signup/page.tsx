@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthShell } from "@/components/layout/AuthShell";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -51,9 +52,12 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader>
+    <AuthShell>
+      <Card className="w-full border-0 shadow-2xl shadow-vault-navy/10">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-vault-gold font-bold text-vault-navy text-xl">
+            HD
+          </div>
           <CardTitle>Create account</CardTitle>
           <CardDescription>Join the HarriDesk community</CardDescription>
         </CardHeader>
@@ -123,6 +127,6 @@ export default function SignupPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

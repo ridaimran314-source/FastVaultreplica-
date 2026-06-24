@@ -31,7 +31,37 @@
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at 1px 1px, hsl(214 32% 91% / 0.35) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  ::selection {
+    @apply bg-vault-gold/30 text-vault-navy;
+  }
+}
+
+@layer components {
+  .section-eyebrow {
+    @apply text-center text-xs font-semibold uppercase tracking-[0.2em] text-vault-gold;
+  }
+
+  .section-title {
+    @apply text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl;
+  }
+
+  .section-subtitle {
+    @apply mx-auto max-w-2xl text-center text-muted-foreground;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border bg-card/80 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-vault-gold/40 hover:shadow-md;
   }
 }

@@ -3,7 +3,7 @@ import { SITE_CONFIG } from "@/lib/constants";
 
 export function Footer() {
   return (
-    <footer className="border-t bg-vault-navy text-white">
+    <footer className="border-t border-white/10 bg-vault-navy text-white">
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="md:col-span-2">

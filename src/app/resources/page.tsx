@@ -12,8 +12,11 @@ import type { Resource } from "@/lib/types";
 import { debounce } from "@/lib/utils";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ResourcesPage() {
   const { user } = useAuth();
@@ -144,109 +147,160 @@ export default function ResourcesPage() {
 
   if (loading) return <LoadingPage message="Loading resources..." />;
 
+  const hasFilters =
+    campus !== "all" ||
+    course !== "all" ||
+    department !== "all" ||
+    semester !== "all" ||
+    type !== "all" ||
+    search.trim().length > 0;
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Academic Resources</h1>
-          <p className="text-muted-foreground">
-            Past papers, notes, and study materials from all campuses
-          </p>
-        </div>
-        <Link href="/resources/upload">
-          <Button>
+    <div className="pb-12">
+      <PageHeader
+        eyebrow="Academic Library"
+        title="Course Resources"
+        description="Past papers, notes, and study materials from every FAST-NUCES campus."
+      >
+        <Button size="lg" className="mt-4 md:mt-0" asChild>
+          <Link href="/resources/upload">
             <Plus className="h-4 w-4" />
             Upload Resource
-          </Button>
-        </Link>
+          </Link>
+        </Button>
+      </PageHeader>
+
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <Card className="mb-8 border-border/80 shadow-card">
+          <CardContent className="p-5">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                Filter & search
+              </p>
+              {hasFilters && (
+                <button
+                  type="button"
+                  className="text-sm font-medium text-vault-gold hover:underline"
+                  onClick={() => {
+                    setCampus("all");
+                    setCourse("all");
+                    setDepartment("all");
+                    setSemester("all");
+                    setType("all");
+                    setSearch("");
+                  }}
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+            <div className="grid gap-3 md:grid-cols-6">
+              <div className="relative md:col-span-2">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by title or course..."
+                  className="pl-9"
+                  onChange={(e) => debouncedSearch(e.target.value)}
+                />
+              </div>
+              <NativeSelect
+                value={campus}
+                onChange={(e) => setCampus(e.target.value)}
+              >
+                <option value="all">All Campuses</option>
+                {CAMPUSES.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </NativeSelect>
+              <NativeSelect
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
+              >
+                <option value="all">All Courses</option>
+                {COURSES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </NativeSelect>
+              <NativeSelect
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              >
+                <option value="all">All Departments</option>
+                {DEPARTMENTS.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </NativeSelect>
+              <NativeSelect
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+              >
+                <option value="all">All Semesters</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                  <option key={s} value={s}>
+                    Semester {s}
+                  </option>
+                ))}
+              </NativeSelect>
+              <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
+                <option value="all">All Types</option>
+                {RESOURCE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="mb-6 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{resources.length}</span>{" "}
+            {resources.length === 1 ? "resource" : "resources"} found
+          </p>
+        </div>
+
+        {!isSupabaseConfigured() && (
+          <div className="mb-6 rounded-xl border border-vault-gold/50 bg-vault-gold/10 p-4 text-sm">
+            Supabase is not configured. Copy <code>.env.example</code> to{" "}
+            <code>.env.local</code> and add your Supabase credentials.
+          </div>
+        )}
+
+        {resources.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-lg font-semibold">No resources found</p>
+              <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                Try clearing your filters or be the first to upload study material
+                for your course.
+              </p>
+              <Button className="mt-6" asChild>
+                <Link href="/resources/upload">Upload Resource</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {resources.map((resource) => (
+              <ResourceCard
+                key={resource.id}
+                resource={resource}
+                isBookmarked={bookmarks.has(resource.id)}
+                onBookmark={() => handleBookmark(resource.id)}
+                onDownload={() => handleDownload(resource)}
+                onShare={() => handleShare(resource)}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-      <div className="mb-6 grid gap-4 md:grid-cols-6">
-        <div className="relative md:col-span-2">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search courses..."
-            className="pl-9"
-            onChange={(e) => debouncedSearch(e.target.value)}
-          />
-        </div>
-        <select
-          value={campus}
-          onChange={(e) => setCampus(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm"
-        >
-          <option value="all">All Campuses</option>
-          {CAMPUSES.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-        <select
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm"
-        >
-          <option value="all">All Courses</option>
-          {COURSES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <select
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm"
-        >
-          <option value="all">All Departments</option>
-          {DEPARTMENTS.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-        <select
-          value={semester}
-          onChange={(e) => setSemester(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm"
-        >
-          <option value="all">All Semesters</option>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-            <option key={s} value={s}>Semester {s}</option>
-          ))}
-        </select>
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm"
-        >
-          <option value="all">All Types</option>
-          {RESOURCE_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
-      </div>
-
-      {!isSupabaseConfigured() && (
-        <div className="mb-6 rounded-lg border border-vault-gold/50 bg-vault-gold/10 p-4 text-sm">
-          Supabase is not configured. Copy <code>.env.example</code> to{" "}
-          <code>.env.local</code> and add your Supabase credentials.
-        </div>
-      )}
-
-      {resources.length === 0 ? (
-        <div className="py-12 text-center text-muted-foreground">
-          No resources found. Be the first to upload!
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {resources.map((resource) => (
-            <ResourceCard
-              key={resource.id}
-              resource={resource}
-              isBookmarked={bookmarks.has(resource.id)}
-              onBookmark={() => handleBookmark(resource.id)}
-              onDownload={() => handleDownload(resource)}
-              onShare={() => handleShare(resource)}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

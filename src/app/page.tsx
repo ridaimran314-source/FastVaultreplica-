@@ -90,24 +90,25 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-vault-navy text-white">
+      <section className="relative flex min-h-[88vh] items-center justify-center overflow-hidden bg-vault-navy text-white">
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-25"
+          className="absolute inset-0 h-full w-full object-cover opacity-20"
           poster="/grid.svg"
         >
           <source src="/hero.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-br from-vault-navy/90 via-vault-blue/80 to-vault-navy/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-vault-navy/95 via-vault-blue/85 to-vault-navy/95" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(10,22,40,0.4)_100%)]" />
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
-          <p className="mb-4 text-sm font-medium uppercase tracking-widest text-vault-gold">
-            FAST NUCES · Academic platform
+          <p className="mb-4 inline-flex items-center rounded-full border border-vault-gold/30 bg-vault-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-vault-gold">
+            FAST NUCES · Academic Platform
           </p>
-          <h1 className="mb-6 text-5xl font-bold md:text-7xl">
+          <h1 className="mb-6 text-5xl font-bold tracking-tight md:text-7xl">
             {SITE_CONFIG.name}
           </h1>
           <motion.p
@@ -120,47 +121,43 @@ export default function HomePage() {
             <span className="animate-pulse">|</span>
           </motion.p>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/resources">
-              <Button size="lg">
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button size="lg" asChild>
+              <Link href="/resources">
                 Courses Directory
                 <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/admission">
-              <Button
-                size="lg"
-                className="bg-vault-gold font-semibold text-vault-navy shadow-lg hover:bg-vault-gold/90"
-              >
-                Admission Hub
-              </Button>
-            </Link>
-            <a
-              href={SITE_CONFIG.facebookGroup}
-              target="_blank"
-              rel="noopener noreferrer"
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              className="bg-vault-gold font-semibold text-vault-navy shadow-lg hover:bg-vault-gold/90"
+              asChild
             >
-              <Button
-                size="lg"
-                variant="ghost"
-                className="text-white hover:bg-white/10"
+              <Link href="/admission">Admission Hub</Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="ghost"
+              className="text-white hover:bg-white/10"
+              asChild
+            >
+              <a
+                href={SITE_CONFIG.facebookGroup}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 Facebook Community
                 <ExternalLink className="h-4 w-4" />
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         </div>
       </section>
 
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4">
-          <p className="mb-2 text-center text-sm font-medium uppercase tracking-widest text-vault-gold">
-            By the numbers
-          </p>
-          <h2 className="mb-12 text-center text-3xl font-bold">
-            Platform at a glance
-          </h2>
+          <p className="mb-2 section-eyebrow">By the numbers</p>
+          <h2 className="mb-12 section-title">Platform at a glance</h2>
           {statsLoading ? (
             <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-6">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -194,13 +191,9 @@ export default function HomePage() {
 
       <section className="bg-muted/50 py-20">
         <div className="mx-auto max-w-7xl px-4">
-          <p className="mb-2 text-center text-sm font-medium uppercase tracking-widest text-vault-gold">
-            What you get
-          </p>
-          <h2 className="mb-4 text-center text-3xl font-bold">
-            Everything in one place
-          </h2>
-          <p className="mx-auto mb-12 max-w-2xl text-center text-muted-foreground">
+          <p className="mb-2 section-eyebrow">What you get</p>
+          <h2 className="mb-4 section-title">Everything in one place</h2>
+          <p className="section-subtitle mb-12">
             Built like a product you&apos;d expect from a serious platform — clear,
             fast, and focused on students.
           </p>
@@ -211,7 +204,7 @@ export default function HomePage() {
                 <Link
                   key={card.href}
                   href={card.href}
-                  className="group rounded-2xl border bg-card p-6 transition-all hover:border-vault-gold/50 hover:shadow-lg"
+                  className="surface-card group p-6"
                 >
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-vault-gold/10">
                     {Icon && <Icon className="h-6 w-6 text-vault-gold" />}
@@ -271,15 +264,13 @@ export default function HomePage() {
             Browse courses, admission tools, and campus life — built for Fastians,
             by students who get it.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/resources">
-              <Button size="lg">Explore courses</Button>
-            </Link>
-            <Link href="/about">
-              <Button size="lg" variant="outline">
-                Our story
-              </Button>
-            </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button size="lg" asChild>
+              <Link href="/resources">Explore courses</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/about">Our story</Link>
+            </Button>
           </div>
         </div>
       </section>
