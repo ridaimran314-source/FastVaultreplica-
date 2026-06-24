@@ -26,13 +26,14 @@ export function TestimonialsCarousel() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.4 }}
-          className="rounded-2xl border bg-card p-8 shadow-sm"
+          className="relative overflow-hidden rounded-2xl border border-border/80 bg-card p-8 shadow-card md:p-10"
         >
-          <Quote className="mb-4 h-8 w-8 text-vault-gold opacity-60" />
-          <p className="mb-6 text-lg italic text-foreground/90">
+          <div className="absolute right-0 top-0 h-24 w-24 rounded-bl-[4rem] bg-vault-gold/10" />
+          <Quote className="mb-4 h-8 w-8 text-vault-gold" />
+          <p className="mb-6 text-lg leading-relaxed text-foreground/90 md:text-xl">
             &ldquo;{testimonial.quote}&rdquo;
           </p>
-          <div>
+          <div className="border-t border-dashed pt-4">
             <p className="font-semibold">{testimonial.name}</p>
             <p className="text-sm text-muted-foreground">
               {testimonial.program} · {testimonial.campus}
@@ -48,7 +49,7 @@ export function TestimonialsCarousel() {
               (prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length
             )
           }
-          className="rounded-full border p-2 hover:bg-muted transition-colors"
+          className="rounded-full border border-border bg-card p-2 shadow-sm transition-colors hover:bg-muted"
           aria-label="Previous testimonial"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -67,7 +68,7 @@ export function TestimonialsCarousel() {
         </div>
         <button
           onClick={() => setCurrent((prev) => (prev + 1) % TESTIMONIALS.length)}
-          className="rounded-full border p-2 hover:bg-muted transition-colors"
+          className="rounded-full border border-border bg-card p-2 shadow-sm transition-colors hover:bg-muted"
           aria-label="Next testimonial"
         >
           <ChevronRight className="h-4 w-4" />

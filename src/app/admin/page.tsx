@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   Upload,
   MessageCircleQuestion,
@@ -9,7 +8,8 @@ import {
   BarChart3,
 } from "lucide-react";
 import { ProtectedRoute } from "@/lib/auth/useProtectedRoute";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { HubLinkCard } from "@/components/shared/HubLinkCard";
 
 const ADMIN_LINKS = [
   {
@@ -47,26 +47,19 @@ const ADMIN_LINKS = [
 export default function AdminDashboardPage() {
   return (
     <ProtectedRoute requireAdmin>
-      <div className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="mb-8 text-3xl font-bold">Admin Dashboard</h1>
-        <div className="grid gap-6 md:grid-cols-2">
-          {ADMIN_LINKS.map((link) => (
-            <Link key={link.href} href={link.href}>
-              <Card className="h-full transition-all hover:border-vault-gold/50 hover:shadow-md">
-                <CardContent className="flex items-start gap-4 p-6">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-vault-gold/10">
-                    <link.icon className="h-6 w-6 text-vault-gold" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{link.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {link.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+      <div className="pb-12">
+        <PageHeader
+          eyebrow="Administration"
+          title="Admin Dashboard"
+          description="Manage uploads, content, events, societies, and admission data."
+        />
+
+        <div className="mx-auto max-w-5xl px-4 py-8">
+          <div className="grid gap-6 md:grid-cols-2">
+            {ADMIN_LINKS.map((link) => (
+              <HubLinkCard key={link.href} {...link} />
+            ))}
+          </div>
         </div>
       </div>
     </ProtectedRoute>

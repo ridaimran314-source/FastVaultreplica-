@@ -34,13 +34,13 @@ export function StatsCounter({ label, value, suffix = "" }: StatsCounterProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5 }}
-      className="text-center"
+      className="rounded-2xl border border-border/60 bg-card/70 p-5 text-center shadow-sm"
     >
       <div className="text-3xl font-bold text-vault-gold md:text-4xl">
         {displayValue.toLocaleString()}
         {suffix}
       </div>
-      <div className="mt-1 text-sm text-muted-foreground">{label}</div>
+      <div className="mt-2 text-sm font-medium text-muted-foreground">{label}</div>
     </motion.div>
   );
 }

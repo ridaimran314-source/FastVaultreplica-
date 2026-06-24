@@ -1,10 +1,10 @@
 import { SITE_CONFIG } from "@/lib/constants";
+import { LegalPageLayout } from "@/components/layout/LegalPageLayout";
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 prose prose-slate">
-      <h1>Privacy Policy</h1>
-      <p className="text-muted-foreground">Last updated: June 2026</p>
+    <LegalPageLayout title="Privacy Policy">
+      <p className="text-sm text-muted-foreground">Last updated: June 2026</p>
 
       <h2>Information We Collect</h2>
       <ul>
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         contacting us at {SITE_CONFIG.contactEmail}.
       </p>
 
-      <p className="text-sm text-muted-foreground">{SITE_CONFIG.disclaimer}</p>
-    </div>
+      <p className="mt-8 text-sm">{SITE_CONFIG.disclaimer}</p>
+    </LegalPageLayout>
   );
 }

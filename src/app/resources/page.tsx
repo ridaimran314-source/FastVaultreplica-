@@ -16,7 +16,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { Card, CardContent } from "@/components/ui/card";
+import { FilterPanel } from "@/components/shared/FilterPanel";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 export default function ResourcesPage() {
   const { user } = useAuth();
@@ -171,93 +172,56 @@ export default function ResourcesPage() {
       </PageHeader>
 
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Card className="mb-8 border-border/80 shadow-card">
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <p className="text-sm font-medium text-muted-foreground">
-                Filter & search
-              </p>
-              {hasFilters && (
-                <button
-                  type="button"
-                  className="text-sm font-medium text-vault-gold hover:underline"
-                  onClick={() => {
-                    setCampus("all");
-                    setCourse("all");
-                    setDepartment("all");
-                    setSemester("all");
-                    setType("all");
-                    setSearch("");
-                  }}
-                >
-                  Clear all
-                </button>
-              )}
+        <FilterPanel showClear={hasFilters} onClear={() => {
+            setCampus("all");
+            setCourse("all");
+            setDepartment("all");
+            setSemester("all");
+            setType("all");
+            setSearch("");
+          }}
+        >
+          <div className="grid gap-3 md:grid-cols-6">
+            <div className="relative md:col-span-2">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by title or course..."
+                className="pl-9"
+                onChange={(e) => debouncedSearch(e.target.value)}
+              />
             </div>
-            <div className="grid gap-3 md:grid-cols-6">
-              <div className="relative md:col-span-2">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search by title or course..."
-                  className="pl-9"
-                  onChange={(e) => debouncedSearch(e.target.value)}
-                />
-              </div>
-              <NativeSelect
-                value={campus}
-                onChange={(e) => setCampus(e.target.value)}
-              >
-                <option value="all">All Campuses</option>
-                {CAMPUSES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </NativeSelect>
-              <NativeSelect
-                value={course}
-                onChange={(e) => setCourse(e.target.value)}
-              >
-                <option value="all">All Courses</option>
-                {COURSES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </NativeSelect>
-              <NativeSelect
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-              >
-                <option value="all">All Departments</option>
-                {DEPARTMENTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </NativeSelect>
-              <NativeSelect
-                value={semester}
-                onChange={(e) => setSemester(e.target.value)}
-              >
-                <option value="all">All Semesters</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                  <option key={s} value={s}>
-                    Semester {s}
-                  </option>
-                ))}
-              </NativeSelect>
-              <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="all">All Types</option>
-                {RESOURCE_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </NativeSelect>
-            </div>
-          </CardContent>
-        </Card>
+            <NativeSelect value={campus} onChange={(e) => setCampus(e.target.value)}>
+              <option value="all">All Campuses</option>
+              {CAMPUSES.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </NativeSelect>
+            <NativeSelect value={course} onChange={(e) => setCourse(e.target.value)}>
+              <option value="all">All Courses</option>
+              {COURSES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </NativeSelect>
+            <NativeSelect value={department} onChange={(e) => setDepartment(e.target.value)}>
+              <option value="all">All Departments</option>
+              {DEPARTMENTS.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </NativeSelect>
+            <NativeSelect value={semester} onChange={(e) => setSemester(e.target.value)}>
+              <option value="all">All Semesters</option>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                <option key={s} value={s}>Semester {s}</option>
+              ))}
+            </NativeSelect>
+            <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="all">All Types</option>
+              {RESOURCE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </NativeSelect>
+          </div>
+        </FilterPanel>
 
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
@@ -274,18 +238,12 @@ export default function ResourcesPage() {
         )}
 
         {resources.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-lg font-semibold">No resources found</p>
-              <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                Try clearing your filters or be the first to upload study material
-                for your course.
-              </p>
-              <Button className="mt-6" asChild>
-                <Link href="/resources/upload">Upload Resource</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            title="No resources found"
+            description="Try clearing your filters or be the first to upload study material for your course."
+            actionLabel="Upload Resource"
+            actionHref="/resources/upload"
+          />
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {resources.map((resource) => (

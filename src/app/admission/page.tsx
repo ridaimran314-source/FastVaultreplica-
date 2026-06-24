@@ -2,21 +2,28 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Calculator,
-  HelpCircle,
-  FileText,
-  Upload,
-  ArrowRight,
-} from "lucide-react";
+import { FileText, Upload } from "lucide-react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { mapAdmissionResource } from "@/lib/supabase/mappers";
 import type { AdmissionResource } from "@/lib/types";
 import { capitalize, formatDate } from "@/lib/utils";
 import { ADMISSION_SUBCATEGORIES } from "@/lib/constants";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { HubLinkCard } from "@/components/shared/HubLinkCard";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { FilterPanel } from "@/components/shared/FilterPanel";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Calculator,
+  HelpCircle,
+} from "lucide-react";
+import {
+  canPreviewDocument,
+  getDocumentPreviewUrl,
+} from "@/lib/document-preview";
 
 const HUB_LINKS = [
   {
@@ -64,100 +71,111 @@ export default function AdmissionPage() {
   }, [subcategory]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold">Admission Portal</h1>
-        <p className="mt-2 text-muted-foreground">
-          Everything you need for FAST-NUCES admission — calculators, FAQs, and
-          test materials
-        </p>
-      </div>
-
-      <div className="mb-12 grid gap-6 md:grid-cols-2">
-        {HUB_LINKS.map((link) => (
-          <Link key={link.href} href={link.href}>
-            <Card className="h-full transition-all hover:border-vault-gold/50 hover:shadow-lg">
-              <CardContent className="flex items-start gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-vault-gold/10">
-                  <link.icon className="h-6 w-6 text-vault-gold" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">{link.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {link.description}
-                  </p>
-                  <span className="mt-2 inline-flex items-center gap-1 text-sm text-vault-gold">
-                    Explore <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-vault-gold" />
-          <h2 className="text-2xl font-bold">Admission Resources</h2>
-        </div>
-        <Link href="/admission/upload">
-          <Button>
+    <div className="pb-12">
+      <PageHeader
+        eyebrow="Prospective Students"
+        title="Admission Portal"
+        description="Calculators, FAQs, and test materials for FAST-NUCES admission — all in one place."
+      >
+        <Button size="lg" className="mt-4 md:mt-0" asChild>
+          <Link href="/admission/upload">
             <Upload className="h-4 w-4" />
-            Share Admission Resource
-          </Button>
-        </Link>
-      </div>
+            Share Resource
+          </Link>
+        </Button>
+      </PageHeader>
 
-      <div className="mb-6">
-        <select
-          value={subcategory}
-          onChange={(e) => setSubcategory(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm"
-        >
-          <option value="all">All Categories</option>
-          {ADMISSION_SUBCATEGORIES.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {loading ? (
-        <LoadingPage message="Loading admission resources..." />
-      ) : resources.length === 0 ? (
-        <p className="py-8 text-center text-muted-foreground">
-          No admission resources yet.
-        </p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {resources.map((resource) => (
-            <Card key={resource.id}>
-              <CardContent className="p-6">
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                  {capitalize(resource.subcategory)}
-                </span>
-                <h3 className="mt-2 font-semibold">{resource.title}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {formatDate(resource.created_at)} · {resource.downloads}{" "}
-                  downloads
-                </p>
-                <a
-                  href={resource.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-block"
-                >
-                  <Button variant="outline" size="sm">
-                    Download
-                  </Button>
-                </a>
-              </CardContent>
-            </Card>
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mb-10 grid gap-6 md:grid-cols-2">
+          {HUB_LINKS.map((link) => (
+            <HubLinkCard key={link.href} {...link} />
           ))}
         </div>
-      )}
+
+        <div className="mb-6 flex items-center gap-2">
+          <FileText className="h-5 w-5 text-vault-gold" />
+          <h2 className="text-2xl font-bold tracking-tight">Admission Resources</h2>
+        </div>
+
+        <FilterPanel
+          showClear={subcategory !== "all"}
+          onClear={() => setSubcategory("all")}
+        >
+          <NativeSelect
+            value={subcategory}
+            onChange={(e) => setSubcategory(e.target.value)}
+            className="max-w-xs"
+          >
+            <option value="all">All Categories</option>
+            {ADMISSION_SUBCATEGORIES.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </NativeSelect>
+        </FilterPanel>
+
+        {loading ? (
+          <LoadingPage message="Loading admission resources..." />
+        ) : resources.length === 0 ? (
+          <EmptyState
+            title="No admission resources yet"
+            description="Be the first to share admission guides, sample papers, or preparation material."
+            actionLabel="Upload Resource"
+            actionHref="/admission/upload"
+          />
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {resources.map((resource) => {
+              const canPreview = canPreviewDocument(resource.file_url);
+              const previewUrl = getDocumentPreviewUrl(resource.file_url);
+              return (
+                <Card
+                  key={resource.id}
+                  className="overflow-hidden border-border/80 shadow-card transition-all hover:-translate-y-0.5 hover:border-vault-gold/50"
+                >
+                  <div className="h-1 bg-gradient-to-r from-vault-gold/70 to-amber-200/70" />
+                  <CardContent className="p-6">
+                    <span className="rounded-full bg-vault-navy px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+                      {capitalize(resource.subcategory)}
+                    </span>
+                    <h3 className="mt-3 font-semibold tracking-tight">
+                      {resource.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {formatDate(resource.created_at)} · {resource.downloads}{" "}
+                      downloads
+                    </p>
+                    <div className="mt-5 flex gap-2">
+                      {canPreview && previewUrl ? (
+                        <Button size="sm" asChild>
+                          <a
+                            href={previewUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View
+                          </a>
+                        </Button>
+                      ) : null}
+                      <Button size="sm" variant="outline" asChild>
+                        <a
+                          href={resource.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                        >
+                          Download
+                        </a>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

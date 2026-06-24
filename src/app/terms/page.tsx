@@ -1,10 +1,10 @@
 import { SITE_CONFIG } from "@/lib/constants";
+import { LegalPageLayout } from "@/components/layout/LegalPageLayout";
 
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 prose prose-slate">
-      <h1>Terms & Conditions</h1>
-      <p className="text-muted-foreground">Last updated: June 2026</p>
+    <LegalPageLayout title="Terms & Conditions">
+      <p className="text-sm text-muted-foreground">Last updated: June 2026</p>
 
       <h2>Acceptance of Terms</h2>
       <p>
@@ -22,14 +22,16 @@ export default function TermsPage() {
       <h2>Content Guidelines</h2>
       <p>
         All uploads are subject to our{" "}
-        <a href="/content-policy">Content Policy</a> and moderation review.
-        Inappropriate content will be rejected.
+        <a href="/content-policy" className="text-vault-gold hover:underline">
+          Content Policy
+        </a>{" "}
+        and moderation review. Inappropriate content will be rejected.
       </p>
 
       <h2>Disclaimer</h2>
       <p>
         {SITE_CONFIG.name} is a community-run platform. We do not guarantee the
-        accuracy of uploaded materials. Use resources at your own discretion.
+        accuracy of uploaded materials. Use resources at your own discretion.{" "}
         {SITE_CONFIG.disclaimer}
       </p>
 
@@ -38,6 +40,6 @@ export default function TermsPage() {
         The platform is provided &quot;as is&quot; without warranties. We are not
         liable for any damages arising from use of the platform or its content.
       </p>
-    </div>
+    </LegalPageLayout>
   );
 }

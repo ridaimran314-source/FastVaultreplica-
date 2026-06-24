@@ -9,6 +9,7 @@ import {
   Target,
   Lightbulb,
 } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 
 const TIMELINE = [
@@ -84,83 +85,101 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16">
-      <section className="mb-16 text-center">
-        <h1 className="mb-4 text-4xl font-bold">Our Story</h1>
-        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-          HarriDesk started as a shared Google Drive folder at the Chiniot-Faisalabad
-          campus. Students needed past papers and notes — so they shared them with
-          each other. When we discovered other campuses had the same problem, we
-          built a platform to bring everyone together.
-        </p>
-      </section>
+    <div className="pb-16">
+      <PageHeader
+        eyebrow="About HarriDesk"
+        title="Our Story"
+        description="From a campus Google Drive folder to a nationwide student platform for every FAST-NUCES campus."
+      />
 
-      <section className="mb-16">
-        <div className="grid gap-6 md:grid-cols-2">
-          {TIMELINE.map((item, i) => (
-            <div key={i} className="rounded-xl border bg-card p-6">
-              <div className="mb-2 text-sm font-medium text-vault-gold">
-                Step {i + 1}
-              </div>
-              <h3 className="mb-2 text-lg font-semibold">{item.title}</h3>
-              <p className="text-sm text-muted-foreground">{item.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="mx-auto max-w-5xl px-4 py-12">
+        <section className="mb-16 text-center">
+          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-muted-foreground">
+            HarriDesk started as a shared Google Drive folder at the Chiniot-Faisalabad
+            campus. Students needed past papers and notes — so they shared them with
+            each other. When we discovered other campuses had the same problem, we
+            built a platform to bring everyone together.
+          </p>
+        </section>
 
-      <section className="mb-16">
-        <h2 className="mb-8 text-center text-3xl font-bold">What We Do</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          {PILLARS.map((pillar) => (
-            <div key={pillar.title} className="flex gap-4 rounded-xl border p-6">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-vault-gold/10">
-                <pillar.icon className="h-6 w-6 text-vault-gold" />
-              </div>
-              <div>
-                <h3 className="mb-1 font-semibold">{pillar.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {pillar.description}
+        <section className="mb-16">
+          <h2 className="section-eyebrow mb-2">Timeline</h2>
+          <h3 className="section-title mb-10">How we got here</h3>
+          <div className="grid gap-6 md:grid-cols-2">
+            {TIMELINE.map((item, i) => (
+              <div key={i} className="surface-card p-6">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-vault-gold">
+                  Step {i + 1}
+                </div>
+                <h4 className="mb-2 text-lg font-semibold">{item.title}</h4>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {item.description}
                 </p>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
 
-      <section className="mb-16">
-        <h2 className="mb-8 text-center text-3xl font-bold">Why We Do It</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {VALUES.map((value) => (
-            <div key={value.title} className="text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-vault-gold/10">
-                <value.icon className="h-7 w-7 text-vault-gold" />
+        <section className="mb-16">
+          <h2 className="section-eyebrow mb-2">Mission</h2>
+          <h3 className="section-title mb-10">What we do</h3>
+          <div className="grid gap-6 md:grid-cols-2">
+            {PILLARS.map((pillar) => (
+              <div key={pillar.title} className="surface-card flex gap-4 p-6">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-vault-gold/15">
+                  <pillar.icon className="h-6 w-6 text-vault-gold" />
+                </div>
+                <div>
+                  <h4 className="mb-1 font-semibold">{pillar.title}</h4>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {pillar.description}
+                  </p>
+                </div>
               </div>
-              <h3 className="mb-2 font-semibold">{value.title}</h3>
-              <p className="text-sm text-muted-foreground">{value.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
 
-      <section className="rounded-2xl bg-vault-navy p-8 text-center text-white">
-        <BookOpen className="mx-auto mb-4 h-10 w-10 text-vault-gold" />
-        <h2 className="mb-4 text-2xl font-bold">Join the community</h2>
-        <p className="mb-6 text-white/70">
-          Explore resources or share your own materials with students across all
-          campuses.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/resources">
-            <Button size="lg">Start Exploring</Button>
-          </Link>
-          <Link href="/resources/upload">
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
-              Share Resources
+        <section className="mb-16">
+          <h2 className="section-eyebrow mb-2">Values</h2>
+          <h3 className="section-title mb-10">Why we do it</h3>
+          <div className="grid gap-6 md:grid-cols-3">
+            {VALUES.map((value) => (
+              <div key={value.title} className="surface-card p-6 text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-vault-gold/15">
+                  <value.icon className="h-7 w-7 text-vault-gold" />
+                </div>
+                <h4 className="mb-2 font-semibold">{value.title}</h4>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {value.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="cta-panel">
+          <BookOpen className="mx-auto mb-4 h-10 w-10 text-vault-gold" />
+          <h2 className="mb-4 text-2xl font-bold md:text-3xl">Join the community</h2>
+          <p className="mx-auto mb-8 max-w-xl text-white/75">
+            Explore resources or share your own materials with students across all
+            campuses.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button size="lg" asChild>
+              <Link href="/resources">Start Exploring</Link>
             </Button>
-          </Link>
-        </div>
-      </section>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/30 bg-transparent text-white hover:bg-white/10"
+              asChild
+            >
+              <Link href="/resources/upload">Share Resources</Link>
+            </Button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

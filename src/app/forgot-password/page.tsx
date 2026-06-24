@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AuthShell } from "@/components/layout/AuthShell";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,9 +35,9 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader>
+    <AuthShell>
+      <Card className="w-full border-0 shadow-2xl shadow-vault-navy/10">
+        <CardHeader className="text-center">
           <CardTitle>Reset password</CardTitle>
           <CardDescription>
             Enter your email and we&apos;ll send you a reset link
@@ -45,13 +46,13 @@ export default function ForgotPasswordPage() {
         <CardContent>
           {sent ? (
             <div className="text-center">
-              <p className="mb-4 text-muted-foreground">
+              <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
                 If an account exists with that email, you&apos;ll receive a password
                 reset link shortly. Check your inbox.
               </p>
-              <Link href="/login">
-                <Button variant="outline">Back to login</Button>
-              </Link>
+              <Button variant="outline" asChild>
+                <Link href="/login">Back to login</Link>
+              </Button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,6 +73,6 @@ export default function ForgotPasswordPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

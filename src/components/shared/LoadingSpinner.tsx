@@ -20,16 +20,18 @@ export function LoadingSpinner({ size = "md", className }: LoadingSpinnerProps) 
 
 export function LoadingPage({ message = "Loading..." }: { message?: string }) {
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-      <LoadingSpinner size="lg" />
-      <p className="text-muted-foreground">{message}</p>
+    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
+      <div className="rounded-2xl border border-border/80 bg-card p-8 shadow-card">
+        <LoadingSpinner size="lg" className="mx-auto" />
+        <p className="mt-4 text-sm font-medium text-muted-foreground">{message}</p>
+      </div>
     </div>
   );
 }
 
 export function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-xl border bg-card p-6">
+    <div className="animate-pulse rounded-2xl border border-border/80 bg-card p-6 shadow-card">
       <div className="mb-4 h-4 w-3/4 rounded bg-muted" />
       <div className="mb-2 h-3 w-1/2 rounded bg-muted" />
       <div className="h-3 w-full rounded bg-muted" />

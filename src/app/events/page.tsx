@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Search } from "lucide-react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { mapEvent } from "@/lib/supabase/mappers";
@@ -10,8 +9,12 @@ import { useRequireAuth } from "@/lib/auth/useProtectedRoute";
 import { CAMPUSES } from "@/lib/constants";
 import type { Event } from "@/lib/types";
 import { EventCard } from "@/components/events/EventCard";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { FilterPanel } from "@/components/shared/FilterPanel";
 import { LoadingPage } from "@/components/shared/LoadingSpinner";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export default function EventsPage() {
   const { user } = useAuth();
@@ -111,66 +114,84 @@ export default function EventsPage() {
     }
   };
 
+  const hasFilters = campus !== "all" || showPast || search.trim().length > 0;
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Campus Events</h1>
-        <p className="text-muted-foreground">
-          Workshops, competitions, and activities across all campuses
-        </p>
-      </div>
+    <div className="pb-12">
+      <PageHeader
+        eyebrow="Campus Life"
+        title="Events"
+        description="Workshops, competitions, and activities happening across FAST-NUCES campuses."
+      />
 
-      <div className="mb-6 flex flex-wrap gap-4">
-        <div className="relative min-w-[200px] flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search events..."
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <select
-          value={campus}
-          onChange={(e) => setCampus(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm"
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <FilterPanel
+          showClear={hasFilters}
+          onClear={() => {
+            setCampus("all");
+            setShowPast(false);
+            setSearch("");
+          }}
         >
-          <option value="all">All Campuses</option>
-          {CAMPUSES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={showPast}
-            onChange={(e) => setShowPast(e.target.checked)}
-          />
-          Show past events
-        </label>
-      </div>
+          <div className="grid gap-3 md:grid-cols-4">
+            <div className="relative md:col-span-2">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search events..."
+                className="pl-9"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <NativeSelect
+              value={campus}
+              onChange={(e) => setCampus(e.target.value)}
+            >
+              <option value="all">All Campuses</option>
+              {CAMPUSES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </NativeSelect>
+            <label className="flex h-10 items-center gap-2 rounded-lg border border-input bg-background px-3 text-sm shadow-sm">
+              <input
+                type="checkbox"
+                checked={showPast}
+                onChange={(e) => setShowPast(e.target.checked)}
+                className="accent-vault-gold"
+              />
+              Show past events
+            </label>
+          </div>
+        </FilterPanel>
 
-      {loading ? (
-        <LoadingPage message="Loading events..." />
-      ) : events.length === 0 ? (
-        <p className="py-8 text-center text-muted-foreground">
-          No events found.
+        <p className="mb-6 text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">{events.length}</span>{" "}
+          {events.length === 1 ? "event" : "events"} found
         </p>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              isBookmarked={bookmarks.has(event.id)}
-              onBookmark={() => handleBookmark(event.id)}
-              onShare={() => handleShare(event)}
-            />
-          ))}
-        </div>
-      )}
+
+        {loading ? (
+          <LoadingPage message="Loading events..." />
+        ) : events.length === 0 ? (
+          <EmptyState
+            title="No events found"
+            description="Try changing your filters or check back later for new campus activities."
+          />
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {events.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                isBookmarked={bookmarks.has(event.id)}
+                onBookmark={() => handleBookmark(event.id)}
+                onShare={() => handleShare(event)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

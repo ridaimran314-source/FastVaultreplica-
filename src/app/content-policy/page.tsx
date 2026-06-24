@@ -1,8 +1,9 @@
+import { LegalPageLayout } from "@/components/layout/LegalPageLayout";
+
 export default function ContentPolicyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 prose prose-slate">
-      <h1>Content Policy</h1>
-      <p className="text-muted-foreground">Last updated: June 2026</p>
+    <LegalPageLayout title="Content Policy">
+      <p className="text-sm text-muted-foreground">Last updated: June 2026</p>
 
       <h2>What You Can Upload</h2>
       <ul>
@@ -22,8 +23,8 @@ export default function ContentPolicyPage() {
 
       <h2>Review Process</h2>
       <p>
-        All uploads enter a moderation queue and are reviewed within 2–5 business
-        days. You will be notified if your upload is rejected, along with a reason.
+        Resources are published to help students access materials quickly. Content
+        that violates this policy may be removed by moderators.
       </p>
 
       <h2>Reporting</h2>
@@ -31,6 +32,6 @@ export default function ContentPolicyPage() {
         If you find content that violates this policy, please contact our team
         immediately so we can review and remove it.
       </p>
-    </div>
+    </LegalPageLayout>
   );
 }

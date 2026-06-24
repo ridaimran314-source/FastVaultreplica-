@@ -64,4 +64,29 @@
   .surface-card {
     @apply rounded-2xl border bg-card/80 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-vault-gold/40 hover:shadow-md;
   }
+
+  .legal-prose {
+    @apply text-foreground;
+  }
+
+  .legal-prose h1 {
+    @apply mb-2 text-3xl font-bold tracking-tight;
+  }
+
+  .legal-prose h2 {
+    @apply mb-3 mt-8 text-xl font-semibold;
+  }
+
+  .legal-prose p,
+  .legal-prose li {
+    @apply text-muted-foreground leading-relaxed;
+  }
+
+  .legal-prose ul {
+    @apply my-4 list-disc space-y-2 pl-6;
+  }
+
+  .cta-panel {
+    @apply rounded-2xl bg-gradient-to-br from-vault-navy via-vault-blue to-vault-navy p-8 text-center text-white shadow-soft md:p-12;
+  }
 }

@@ -125,11 +125,11 @@ function UploadForm() {
   }
 
   return (
-    <Card className="mx-auto max-w-lg">
+    <Card className="mx-auto w-full border-border/80 shadow-card">
       <CardHeader>
-        <CardTitle>Upload Resource</CardTitle>
+        <CardTitle>Resource details</CardTitle>
         <CardDescription>
-          Share academic materials with students across all campuses
+          Files up to {MAX_UPLOAD_MB} MB · published immediately after upload
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -268,8 +268,21 @@ function UploadForm() {
 export default function UploadResourcePage() {
   return (
     <ProtectedRoute>
-      <div className="px-4 py-12">
-        <UploadForm />
+      <div className="pb-12">
+        <div className="border-b bg-gradient-to-br from-vault-navy via-vault-blue to-vault-navy px-4 py-10 text-white">
+          <div className="mx-auto max-w-3xl">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-vault-gold">
+              Contribute
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight">Upload Resource</h1>
+            <p className="mt-2 text-sm text-white/75">
+              Share notes, past papers, and study guides with students nationwide.
+            </p>
+          </div>
+        </div>
+        <div className="mx-auto max-w-lg px-4 py-10">
+          <UploadForm />
+        </div>
       </div>
     </ProtectedRoute>
   );

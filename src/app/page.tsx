@@ -227,13 +227,9 @@ export default function HomePage() {
 
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4">
-          <p className="mb-2 text-center text-sm font-medium uppercase tracking-widest text-vault-gold">
-            Voices
-          </p>
-          <h2 className="mb-4 text-center text-3xl font-bold">
-            What students say
-          </h2>
-          <p className="mb-12 text-center text-muted-foreground">
+          <p className="mb-2 section-eyebrow">Voices</p>
+          <h2 className="mb-4 section-title">What students say</h2>
+          <p className="section-subtitle mb-12">
             Feedback from across FAST NUCES campuses.
           </p>
           <TestimonialsCarousel />
@@ -242,11 +238,9 @@ export default function HomePage() {
 
       <section className="bg-muted/50 py-20">
         <div className="mx-auto max-w-7xl px-4">
-          <p className="mb-2 text-center text-sm font-medium uppercase tracking-widest text-vault-gold">
-            Nationwide
-          </p>
-          <h2 className="mb-4 text-center text-3xl font-bold">Every campus</h2>
-          <p className="mb-12 text-center text-muted-foreground">
+          <p className="mb-2 section-eyebrow">Nationwide</p>
+          <h2 className="mb-4 section-title">Every campus</h2>
+          <p className="section-subtitle mb-12">
             Resources, societies, and events from all six FAST NUCES campuses.
           </p>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -258,19 +252,26 @@ export default function HomePage() {
       </section>
 
       <section className="py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="mb-4 text-3xl font-bold">Start with one click.</h2>
-          <p className="mb-8 text-muted-foreground">
-            Browse courses, admission tools, and campus life — built for Fastians,
-            by students who get it.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button size="lg" asChild>
-              <Link href="/resources">Explore courses</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/about">Our story</Link>
-            </Button>
+        <div className="mx-auto max-w-3xl px-4">
+          <div className="cta-panel">
+            <h2 className="mb-4 text-3xl font-bold">Start with one click</h2>
+            <p className="mx-auto mb-8 max-w-xl text-white/75">
+              Browse courses, admission tools, and campus life — built for Fastians,
+              by students who get it.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button size="lg" asChild>
+                <Link href="/resources">Explore courses</Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 bg-transparent text-white hover:bg-white/10"
+                asChild
+              >
+                <Link href="/about">Our story</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

@@ -23,56 +23,77 @@ export function EventCard({
   const isPast = event.date < new Date();
 
   return (
-    <Card className={`transition-all hover:shadow-md ${isPast ? "opacity-60" : ""}`}>
-      <CardContent className="p-6">
+    <Card
+      className={`group overflow-hidden border-border/80 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-vault-gold/50 hover:shadow-soft ${
+        isPast ? "opacity-70" : ""
+      }`}
+    >
+      <div className="h-1 bg-gradient-to-r from-vault-gold/70 via-amber-200/70 to-vault-gold/70" />
+      <CardContent className="p-0">
         {event.poster ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={event.poster}
             alt={event.title}
-            className="mb-4 h-40 w-full rounded-lg object-cover"
+            className="h-44 w-full object-cover"
           />
         ) : (
-          <div className="mb-4 flex h-40 items-center justify-center rounded-lg bg-vault-gold/10">
+          <div className="flex h-44 items-center justify-center bg-gradient-to-br from-vault-navy/5 to-vault-gold/10">
             <Calendar className="h-12 w-12 text-vault-gold" />
           </div>
         )}
 
-        <h3 className="font-semibold">{event.title}</h3>
-        <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-          <p className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {formatDate(event.date)}
-          </p>
-          <p className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            {event.venue} · {capitalize(event.campus)}
-          </p>
-          <p>Organized by {event.organizer}</p>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href={`/events/${event.id}`}>
-            <Button variant="outline" size="sm">
-              View Event
-            </Button>
-          </Link>
-          {event.registration_url && !isPast && (
-            <a href={event.registration_url} target="_blank" rel="noopener noreferrer">
-              <Button size="sm">Register</Button>
-            </a>
+        <div className="p-6">
+          {isPast && (
+            <span className="mb-2 inline-block rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide">
+              Past event
+            </span>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBookmark}
-            className={isBookmarked ? "text-vault-gold" : ""}
-          >
-            <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onShare}>
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <h3 className="font-semibold tracking-tight group-hover:text-vault-navy">
+            {event.title}
+          </h3>
+          <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+            <p className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 shrink-0 text-vault-gold" />
+              {formatDate(event.date)}
+            </p>
+            <p className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 shrink-0 text-vault-gold" />
+              {event.venue} · {capitalize(event.campus)}
+            </p>
+            <p>Organized by {event.organizer}</p>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2 border-t border-dashed pt-4">
+            <Button variant="default" size="sm" asChild>
+              <Link href={`/events/${event.id}`}>View Event</Link>
+            </Button>
+            {event.registration_url && !isPast && (
+              <Button size="sm" variant="outline" asChild>
+                <a
+                  href={event.registration_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Register
+                </a>
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onBookmark}
+              className={isBookmarked ? "border-vault-gold text-vault-gold" : ""}
+              aria-label="Bookmark"
+            >
+              <Bookmark
+                className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`}
+              />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onShare} aria-label="Share">
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
